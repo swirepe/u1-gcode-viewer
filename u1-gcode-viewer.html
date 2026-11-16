@@ -1508,7 +1508,7 @@ function ui() {
 ui();
 
 /* ---------- HUD ---------- */
-const HUD = { temps: 'Temperatures', layer: '2D layer view', job: 'Job', meta: 'File info', motion: 'Motion', fans: 'Fans', sys: 'System', cam: 'Camera' };
+const HUD = { cam: 'Camera', temps: 'Temperatures', layer: '2D layer view', job: 'Job', meta: 'File info', motion: 'Motion', fans: 'Fans', sys: 'System' };
 let metaDone, camSnap = '', camIdx = 0, camBusy = false, camErr = false, camMsg = '', hudOn = matchMedia('(max-width:720px)').matches ? {} : { temps: true, job: true, meta: true }, heaters = [], fans = [], hist = {}, vel = [], sys = {};
 try { hudOn = Object.assign(hudOn, JSON.parse(localStorage.getItem('u1hud'))); } catch (e) {}
 for (const k in HUD) {
