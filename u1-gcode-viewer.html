@@ -98,13 +98,18 @@ body.hide #lsw{left:12px}body.live #host{display:none}
 body:not(.live) #fbb{display:none}body.showcase #lsw{display:none!important}
 @media(max-width:720px){.fb-act{display:none}#fb-q{width:90px}}
 #lg span[data-k]{cursor:pointer}#lg .off{opacity:.35;text-decoration:line-through}
+#lsw{width:64px;border-radius:32px}#lst{flex:1;position:relative;width:100%;min-height:0;display:flex;justify-content:center}#lst input{flex:none;height:100%;width:22px}
+#lch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5}
+#sb{display:none;position:fixed;left:0;right:0;bottom:0;z-index:3;pointer-events:none;padding-bottom:env(safe-area-inset-bottom)}body.hide #sb.on{display:block}
+#sb-t{padding:0 16px 8px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums;color:var(--fg);opacity:.85;text-shadow:0 1px 6px #000}
+#sb-bar{height:3px;background:#ffffff1a}#sb-bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .6s}
 </style>
 </head>
 <body>
 <button id="ui" aria-label="Hide or show panels" title="Hide / show panels">☰</button>
 <div id="p">
   <h1>U1 G-code viewer</h1>
-  <section id="job-summary" class="summary hidden"><div class="section-kicker">CURRENT JOB <span id="job-state"></span></div><div id="job-file" class="muted" style="margin:0 0 4px;overflow-wrap:anywhere"></div><div id="job-pct" class="big-percent">—</div><div id="bar"><i></i></div><div class="job-stats"><div><small>Elapsed</small><b id="job-elapsed">—</b></div><div><small>Remaining</small><b id="job-remaining">—</b></div><div><small>Layer</small><b id="job-layer">—</b></div></div><div class="row" style="margin:8px 0 0"><button id="jp">Pause</button><button id="jc">Cancel</button><button id="jx" title="Exclude objects from this print">Objects</button></div></section>
+  <section id="job-summary" class="summary hidden"><div class="section-kicker">CURRENT JOB <span id="job-state"></span></div><div id="job-file" class="muted" style="margin:0 0 4px;overflow-wrap:anywhere"></div><div id="job-obj" class="muted" style="margin:0 0 4px"></div><div id="job-pct" class="big-percent">—</div><div id="bar"><i></i></div><div class="job-stats"><div><small>Elapsed</small><b id="job-elapsed">—</b></div><div><small>Remaining</small><b id="job-remaining">—</b></div><div><small>Layer</small><b id="job-layer">—</b></div></div><div class="job-stats" style="margin-top:6px"><div><small>Finish</small><b id="job-eta">—</b></div><div><small>Filament</small><b id="job-fil">—</b></div><div><small>Speed</small><b id="job-spd">—</b></div></div><div class="row" style="margin:8px 0 0"><button id="jp">Pause</button><button id="jc">Cancel</button><button id="jx" title="Exclude objects from this print">Objects</button></div></section>
   <div class="row">
     <input type="text" id="host" placeholder="printer address, e.g. 192.168.1.50" aria-label="Printer address" spellcheck="false">
     <button id="cb">Connect</button>
@@ -132,15 +137,16 @@ body:not(.live) #fbb{display:none}body.showcase #lsw{display:none!important}
   <div id="lg"></div>
   <div id="hudopts" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px"><span style="color:var(--mut)">HUD</span></div>
   <div class="row" style="margin:8px 0 0"><button id="fitb">Fit view</button></div>
-  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels, O orbit, C fullscreen camera, P unprinted, 1–4 style presets, R render style, M/N color modes, V view, L follow live, S showcase, B printer files, T/X/E travel/retracts/seams, G bed mesh, K snapshot, Y record</div>
+  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels, O orbit, C fullscreen camera, P unprinted, 1–4 style presets, R render style, M/N color modes, V view, L follow live, S showcase, B printer files, J job history, T/X/E travel/retracts/seams, G bed mesh, K snapshot, Y record, ? all shortcuts</div>
   <div id="dbg"></div></details>
 </div>
 <div id="load" role="status" aria-live="polite"><div class="spin"></div><div><b id="lt">Loading…</b><div id="ls"></div><div class="tr" id="lb"><i id="lp" style="width:0"></i></div></div></div>
 <div id="hud"></div>
 <div id="drop">Drop G-code to view</div>
-<div id="lsw"><small id="lsmax">–</small><input type="range" id="sl" min="0" max="0" value="0" aria-label="Layer" title="Layer"><b id="lsv">–</b></div>
+<div id="lsw"><small id="lsmax">–</small><div id="lst" title="Per-layer print time"><canvas id="lch"></canvas><input type="range" id="sl" min="0" max="0" value="0" aria-label="Layer" title="Layer"></div><b id="lsv">–</b></div>
 <div id="fb" hidden><div id="fb-card"><div id="fb-top"><div id="fb-crumbs"></div><input id="fb-q" type="search" placeholder="Search…" aria-label="Search files"><select id="fb-sort" aria-label="Sort"><option value="modified">Newest</option><option value="name">Name</option><option value="size">Size</option><option value="time">Print time</option></select><button id="fb-x" aria-label="Close">✕</button></div><div id="fb-list"></div></div></div>
 <div id="toast"></div>
+<div id="sb"><div id="sb-t"></div><div id="sb-bar"><i></i></div></div>
 <div id="empty">Drop a .gcode file here<br><small>or connect to your printer</small></div>
 <div id="camfs" hidden><div id="camfs-msg"></div><button id="camfs-x" aria-label="Exit fullscreen camera" title="Exit (Esc)">✕</button></div>
 
@@ -1294,6 +1300,7 @@ function parseCore(text, C, PAL, post) {   // pure: also runs inside a Web Worke
   return { colors, ex: { tp: Float32Array.from(tp), tn: Uint32Array.from(tn), rp: Float32Array.from(rp), rn: Uint32Array.from(rn), up: Float32Array.from(up), un: Uint32Array.from(un), sp: Float32Array.from(sp), sn: Uint32Array.from(sn) }, pos: new Float32Array(pos), tl: Uint8Array.from(tl), fd: Float32Array.from(fd), ty: Uint8Array.from(ty), types, ct: Float32Array.from(ct), off: Float64Array.from(off), ls, n: off.length };
 }
 
+var lastMsg = '', warned = {}, sensors = [];
 function parse(text) {
   const done = m => { colors = m.colors; return m; };
   try {
@@ -1329,7 +1336,7 @@ function build(m) {
   lB = new THREE.LineSegments(gB, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.13 }));
   lA.frustumCulled = lB.frustumCulled = false; lB.visible = $('gh').checked;
   scene.add(lB, lA); buildExtras(m); { const ix = new Float32Array(m.n); for (let i = 0; i < m.n; i++) ix[i] = i; m.idx = ix; }
-  $('lsw').classList.add('on'); $('empty').hidden = true; $('lsmax').textContent = m.ls.length; applyStyle();
+  $('lsw').classList.add('on'); $('empty').hidden = true; $('lsmax').textContent = m.ls.length; applyStyle(); drawLChart();
   $('sl').max = Math.max(0, m.ls.length - 1);
   show(m.n); $('sl').value = $('sl').max;
 }
@@ -1399,7 +1406,8 @@ void main(){
   vec2 o = (vec2(-d.y, d.x) * position.y + d * (position.x * 2. - 1.)) * wpx / uRes;
   c.xy += o * c.w; gl_Position = c; vC = col * (uTau > 0. ? mix(.2, 1.15, exp(-max(uHead - idx, 0.) / uTau)) : 1.); vS = position.y;
 }`;
-const RIB_FS = `uniform float uA; varying vec3 vC; varying float vS; void main(){ gl_FragColor = vec4(vC * (1. - .35 * vS * vS), uA); }`;
+const RIB_FS = `uniform float uA, uNeon; varying vec3 vC; varying float vS;
+void main(){ float e = smoothstep(.4, .95, abs(vS)); vec3 c = uNeon > 0. ? mix(vC * .14, vC * 1.4, e) : vC * (1. - .35 * vS * vS); gl_FragColor = vec4(c, uA); }`;
 function ensureRib() {
   if (rA || !M) return;
   const ibp = new THREE.InstancedInterleavedBuffer(M.pos, 6, 1), ibc = new THREE.InstancedInterleavedBuffer(M.col, 6, 1);
@@ -1409,7 +1417,7 @@ function ensureRib() {
     g.setAttribute('pa', new THREE.InterleavedBufferAttribute(ibp, 3, 0)); g.setAttribute('pb', new THREE.InterleavedBufferAttribute(ibp, 3, 3));
     g.setAttribute('col', new THREE.InterleavedBufferAttribute(ibc, 3, 0)); g.setAttribute('idx', new THREE.InstancedBufferAttribute(M.idx, 1)); g.setAttribute('hid', new THREE.InstancedBufferAttribute(M.hid, 1)); g.instanceCount = M.n;
     const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: RIB_VS, fragmentShader: RIB_FS, transparent: a < 1, depthWrite: a === 1, side: THREE.DoubleSide,
-      uniforms: { uW: { value: .45 }, uRes: ribRes, uFrom: { value: 0 }, uTo: { value: 0 }, uHead: { value: 0 }, uTau: { value: 0 }, uA: { value: a } } }));
+      uniforms: { uW: { value: .45 }, uRes: ribRes, uFrom: { value: 0 }, uTo: { value: 0 }, uHead: { value: 0 }, uTau: { value: 0 }, uNeon: { value: 0 }, uA: { value: a } } }));
     m.frustumCulled = false; scene.add(m); return m;
   };
   rA = mk(1); rB = mk(.13);
@@ -1419,9 +1427,8 @@ function applyStyle() {
   const sv = $('rs').value, r = sv !== 'line', g = $('gh').checked; if (r) ensureRib();
   if (lA) { lA.visible = !r; lB.visible = !r && g; }
   if (rA) { rA.visible = r; rB.visible = r && g;
-    const m = rA.material, neon = sv === 'neon';   // glow: recent segments bright, older ones fade; neon: additive blending
-    m.uniforms.uTau.value = sv === 'glow' ? Math.max(2000, M.n * .02) : 0; m.uniforms.uA.value = neon ? .5 : 1;
-    m.blending = neon ? THREE.AdditiveBlending : THREE.NormalBlending; m.transparent = neon; m.depthWrite = !neon; m.needsUpdate = true; }
+    const m = rA.material, neon = sv === 'neon';   // glow: recent segments bright, older ones fade; neon: dark core with a bright rim
+    m.uniforms.uTau.value = sv === 'glow' ? Math.max(2000, M.n * .02) : 0; m.uniforms.uNeon.value = neon ? 1 : 0; }
   if (M) show(cur);
 }
 function fit() {
@@ -1639,6 +1646,8 @@ addEventListener('keydown', e => {
   else if (e.key === 'y' || e.key === 'Y') record();
   else if (e.key === 't' || e.key === 'T') { $('xtr').click(); toast('Travel moves ' + ($('xtr').checked ? 'on' : 'off')); }
   else if (e.key === 'x' || e.key === 'X') { $('xrt').click(); toast('Retracts ' + ($('xrt').checked ? 'on' : 'off')); }
+  else if (e.key === '?') helpShow();
+  else if (e.key === 'j' || e.key === 'J') { if (live) histShow(); }
   else if (e.key === 'e' || e.key === 'E') { $('xsm').click(); toast('Seams ' + ($('xsm').checked ? 'on' : 'off')); }
 });
 $('sl').oninput = e => { $('fol').checked = false; show(layerEnd(+e.target.value)); };
@@ -1753,6 +1762,7 @@ function updateNozzleColor(toolNumber) {
 }
 
 function updateLeftPane() {
+  updateSb(); const msg = (st.print_stats && st.print_stats.message) || ''; if (msg && msg !== lastMsg) toast('Printer: ' + msg, 7000); lastMsg = msg;
   document.body.classList.toggle('live', !!live); $('info').style.display = live ? '' : 'none';
   const hasFile=!!(M&&M.n), hasJob=!!(live && st.print_stats && st.print_stats.filename && !['standby','complete','cancelled','error'].includes(st.print_stats.state));
   $('file-summary').classList.toggle('hidden',!hasFile);
@@ -1769,7 +1779,9 @@ function updateLeftPane() {
   if(hasJob){const ps=st.print_stats,pr=st.virtual_sdcard&&st.virtual_sdcard.progress,elapsed=ps.print_duration||0;
     $('job-state').textContent=ps.state||''; $('job-file').textContent=(ps.filename||'').split('/').pop(); $('jp').textContent = ps.state === 'paused' ? 'Resume' : 'Pause'; $('job-pct').textContent=pr!=null?(pr*100).toFixed(0)+'%':'—';
     $('bar').firstChild.style.width=(pr!=null?pr*100:0)+'%';$('job-elapsed').textContent=dur(elapsed);
-    $('job-remaining').textContent=pr>0.02&&ps.state==='printing'?dur(elapsed*(1-pr)/pr):'—';
+    const jc=jobCalc(); $('job-remaining').textContent=jc&&jc.rem!=null?dur(jc.rem):'—'; $('job-eta').textContent=jc?jc.etaS:'—';
+    $('job-fil').textContent=ps.filament_used!=null?(ps.filament_used/1000).toFixed(2)+' m':'—'; const sf=st.gcode_move&&st.gcode_move.speed_factor; $('job-spd').textContent=sf!=null?Math.round(sf*100)+'%':'—';
+    $('job-obj').textContent=jc&&jc.obj?'Printing: '+jc.obj:'';
     const inf=ps.info||{};$('job-layer').textContent=inf.current_layer!=null?inf.current_layer+(inf.total_layer?' / '+inf.total_layer:''):hasFile&&cur?layerOf(Math.max(0,cur-1))+1+' / '+M.ls.length:'—';
   }
   if(live){const vals=systemValues();$('left-cpu').textContent=vals.cpu; $('left-cputemp').textContent=vals.temp; $('left-memory').textContent=vals.mem;}
@@ -1825,6 +1837,8 @@ function subscribe(all) {
   };
   for (const k in o) if (!all.includes(k)) delete o[k];
   for (const n of heaters.concat(fans)) o[n] = null;
+  sensors = all.filter(n => /^(temperature_sensor|temperature_fan|filament_switch_sensor|filament_motion_sensor) /.test(n)); for (const n of sensors) o[n] = null;
+  if (all.includes('exclude_object')) o.exclude_object = ['current_object', 'excluded_objects'];
   rpc(1, 'printer.objects.subscribe', { objects: o });
   rpc(4, 'server.temperature_store');
 }
@@ -2004,7 +2018,7 @@ $('camfs-b').onclick = $('camfs-x').onclick = $('cam').onclick = () => camFullsc
 document.addEventListener('fullscreenchange', () => { if (camFs && !document.fullscreenElement) camFullscreen(false); });
 
 /* ---------- presets, views, toast ---------- */
-function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
+function toast(m, ms = 2200) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), ms); }
 const cyc = id => { const el = $(id); el.selectedIndex = (el.selectedIndex + 1) % el.options.length; el.onchange({ target: el }); };
 const PRESETS = { 1: ['tool', 'filament'], 2: ['type', 'filament'], 3: ['tool', 'type'], 4: ['type', 'type'] };   // [parts by, nozzle by]
 function preset(k) {
@@ -2087,6 +2101,7 @@ $('fb-list').onclick = async e => {
   if (x) { if (confirm('Exclude ' + x.dataset.x + ' from this print?')) { await pcall('/printer/gcode/script?script=' + encodeURIComponent('EXCLUDE_OBJECT NAME=' + x.dataset.x), 'Excluded ' + x.dataset.x); fbShow(false); } return; }
   const row = e.target.closest('.fb-row'); if (!row) return;
   if (row.dataset.d) return fbLoad(row.dataset.d);
+  if (!row.dataset.f) return;
   const path = row.dataset.f.replace(/^gcodes\//, '');
   if (e.target.closest('[data-print]')) {
     if (!confirm('Start printing ' + path + '?')) return;
@@ -2110,7 +2125,62 @@ function extrasRange(s0, n) {
   const rg = (o, nn, d) => { const a = lb(nn, s0), b = ub(nn, n); o.geometry.setDrawRange(a * d, Math.max(0, b - a) * d); };
   rg(EX[0], x.tn, 2); rg(EX[1], x.rn, 1); rg(EX[2], x.un, 1); rg(EX[3], x.sn, 1);
 }
-['xtr', 'xrt', 'xsm'].forEach(id => $(id).onchange = extrasVis);
+function jobCalc() {
+  const ps = st.print_stats, vs = st.virtual_sdcard;
+  if (!live || !ps || !ps.filename || ['standby', 'complete', 'cancelled', 'error'].includes(ps.state)) return null;
+  const pr = vs && vs.progress != null ? vs.progress : 0, el = ps.print_duration || 0; let p = pr;
+  if (M && M.n && loaded === ps.filename && vs && vs.file_position != null) { const n = lb(M.off, vs.file_position), tot = M.ct[M.n - 1]; if (n > 0 && tot > 0) p = M.ct[n - 1] / tot; }   // time-weighted progress beats file position
+  const rem = ps.state === 'printing' && p > .02 ? el * (1 - p) / p : null, eta = rem != null ? new Date(Date.now() + rem * 1000) : null, inf = ps.info || {};
+  const days = eta ? Math.round((new Date(eta).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5) : 0;
+  return { pr, rem, etaS: eta ? eta.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + (days > 0 ? ' +' + days + 'd' : '') : '—',
+    layer: inf.current_layer != null ? inf.current_layer + (inf.total_layer ? '/' + inf.total_layer : '') : '', obj: (st.exclude_object && st.exclude_object.current_object) || '' };
+}
+function updateSb() {   // thin status strip: visible whenever the panels are hidden (e.g. showcase)
+  const sb = $('sb'); if (!live) { sb.classList.remove('on'); return; }
+  const j = jobCalc(), ex = (st.toolhead && st.toolhead.extruder) || 'extruder', parts = [];
+  const T = n => st[n] && st[n].temperature != null ? st[n].temperature.toFixed(0) + '°' + (st[n].target ? '/' + st[n].target.toFixed(0) + '°' : '') : '';
+  if (T(ex)) parts.push('Nozzle ' + T(ex)); if (T('heater_bed')) parts.push('Bed ' + T('heater_bed'));
+  for (const n of sensors) {
+    const v = st[n]; if (!v) continue;
+    if (/^temperature_(sensor|fan) /.test(n) && v.temperature != null) parts.push(n.replace(/^\S+ /, '') + ' ' + v.temperature.toFixed(0) + '°');
+    if (/^filament_/.test(n) && v.filament_detected != null) { if (!v.filament_detected && !warned[n]) toast('⚠ Filament not detected: ' + n.replace(/^\S+ /, ''), 7000); warned[n] = !v.filament_detected; }
+  }
+  if (j) { parts.push(Math.round(j.pr * 100) + '%'); if (j.rem != null) parts.push(dur(j.rem) + ' left · ' + j.etaS); if (j.layer) parts.push('Layer ' + j.layer); if (j.obj) parts.push(j.obj); }
+  if (Object.values(warned).some(Boolean)) parts.push('⚠ filament');
+  $('sb-t').textContent = parts.join('  ·  '); $('sb-bar').firstChild.style.width = (j ? j.pr * 100 : 0) + '%'; sb.classList.add('on');
+}
+function drawLChart() {   // per-layer time bars behind the layer slider
+  const cv = $('lch'); if (!M || !M.n) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  const dpr = devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  if (!M.lt) M.lt = M.ls.map((a, L) => M.ct[layerEnd(L) - 1] - (a ? M.ct[a - 1] : 0));
+  const N = M.lt.length, mx = M.lt.reduce((a, b) => Math.max(a, b), 1e-6); g.fillStyle = '#9db4ff';
+  for (let y = 0; y < H; y++) {
+    const a = Math.max(0, Math.floor((1 - (y + 1) / H) * N)), b = Math.min(N, Math.max(Math.ceil((1 - y / H) * N), a + 1)); let v = 0;
+    for (let L = a; L < b; L++) if (M.lt[L] > v) v = M.lt[L];
+    if (v) { const w = v / mx * (W - 2) + 1; g.fillRect(W - w, y, w, 1); }
+  }
+}
+new ResizeObserver(drawLChart).observe($('lst'));
+async function histShow() {
+  $('fb').hidden = false; $('fb-crumbs').textContent = 'Job history'; $('fb-list').innerHTML = '<div class="fb-empty">Loading…</div>';
+  try {
+    const [l, t] = await Promise.all([fetch(fbBase() + '/server/history/list?limit=40&order=desc'), fetch(fbBase() + '/server/history/totals')].map(p => p.then(r => r.json())));
+    const tt = t.result.job_totals, ic = { completed: '✔', cancelled: '✖', in_progress: '▶' };
+    $('fb-crumbs').textContent = `Job history · ${tt.total_jobs} jobs · ${fbT(tt.total_print_time)} printed · ${(tt.total_filament_used / 1000).toFixed(0)} m filament`;
+    $('fb-list').innerHTML = l.result.jobs.map(j => `<div class="fb-row" ${j.exists ? `data-f="gcodes/${esc(j.filename)}"` : ''}><span class="fb-th">${ic[j.status] || '⚠'}</span><div class="fb-main"><b>${esc(j.filename.split('/').pop())}</b><small>${esc(j.status.replace(/_/g, ' '))} · ${new Date(j.start_time * 1000).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · ⏱ ${fbT(j.print_duration)} · ${(j.filament_used / 1000).toFixed(1)} m${j.exists ? '' : ' · file deleted'}</small></div>${j.exists ? '<div class="fb-act"><button data-view>View</button><button data-print>Print</button></div>' : ''}</div>`).join('') || '<div class="fb-empty">No jobs recorded yet</div>';
+  } catch (e) { $('fb-list').innerHTML = '<div class="fb-empty">Could not read history (' + esc(e.message) + ')</div>'; }
+}
+const fmtS = t => t >= 60 ? Math.floor(t / 60) + 'm ' + String(Math.round(t % 60)).padStart(2, '0') + 's' : Math.round(t) + 's';
+const XIDS = ['xtr', 'xrt', 'xsm'];
+try { const v = JSON.parse(localStorage.getItem('u1x') || '{}'); XIDS.forEach(id => $(id).checked = !!v[id]); } catch (e) {}
+XIDS.forEach(id => $(id).onchange = () => { extrasVis(); localStorage.setItem('u1x', JSON.stringify(Object.fromEntries(XIDS.map(i => [i, $(i).checked])))); });
+const KEYS = [['↑ ↓ · PgUp PgDn', 'Layer ±1 · ±10'], ['F', 'Fit view'], ['V', 'Cycle iso / top / front / side'], ['O', 'Slow orbit'], ['C', 'Fullscreen printer camera'], ['H', 'Hide panels'], ['S', 'Showcase mode'],
+  ['1 – 4', 'Style presets'], ['R · M · N', 'Render style · parts color · nozzle color'], ['P', 'Unprinted preview'], ['T · X · E', 'Travel · retracts · seams'], ['L', 'Follow live print'],
+  ['B', 'Printer files'], ['J', 'Job history'], ['G', 'Bed mesh'], ['K · Y', 'Snapshot · record video'], ['?', 'This list']];
+function helpShow() {
+  $('fb').hidden = false; $('fb-crumbs').textContent = 'Keyboard shortcuts';
+  $('fb-list').innerHTML = KEYS.map(([k, d]) => `<div class="fb-row" style="cursor:default"><span style="min-width:150px"><b>${k}</b></span><div class="fb-main">${d}</div></div>`).join('');
+}
 $('lg').onclick = e => {   // click a legend entry to hide it; shift-click to isolate it (again to restore)
   const sp = e.target.closest('span[data-k]'); if (!sp || !M || (mode !== 'tool' && mode !== 'type')) return;
   const k = +sp.dataset.k, H = HID[mode], ids = [...$('lg').querySelectorAll('[data-k]')].map(x => +x.dataset.k);
@@ -2152,7 +2222,7 @@ function layerStats(n) {
   const el = $('lstat'); if (!M || !n) { el.textContent = ''; return; }
   const L = layerOf(n - 1), a = M.ls[L], e = layerEnd(L), by = {}; let len = 0;
   for (let i = a; i < e; i++) { const j = i * 6, d = Math.hypot(M.pos[j + 3] - M.pos[j], M.pos[j + 4] - M.pos[j + 1], M.pos[j + 5] - M.pos[j + 2]); len += d; by[M.ty[i]] = (by[M.ty[i]] || 0) + d; }
-  el.textContent = `Z ${M.pos[a * 6 + 1].toFixed(2)} mm · ${(len / 1000).toFixed(2)} m path · ` + Object.entries(by).sort((p, q) => q[1] - p[1]).slice(0, 3).map(([t, d]) => `${M.types[t]} ${Math.round(d / len * 100)}%`).join(' · ');
+  el.textContent = `Z ${M.pos[a * 6 + 1].toFixed(2)} mm · ${(len / 1000).toFixed(2)} m · ~${fmtS(M.ct[e - 1] - (a ? M.ct[a - 1] : 0))} · ` + Object.entries(by).sort((p, q) => q[1] - p[1]).slice(0, 3).map(([t, d]) => `${M.types[t]} ${Math.round(d / len * 100)}%`).join(' · ');
 }
 function snap() {
   renderer.render(scene, cam);
