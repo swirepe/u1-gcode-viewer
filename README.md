@@ -1,5 +1,7 @@
 # u1-gcode-viewer
 
+![Screenshot as of 2026-11-17](screenshot.png)
+
 ## What is it?
 
 It's a 3D gcode visualizer as a single file in html, css, and javascript with no external dependencies (three.js is embedded).  It can also connect to a klipper/moonraker printer like a Snapmaker U1, to show the print live as its happening.  
