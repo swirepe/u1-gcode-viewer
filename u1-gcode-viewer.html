@@ -88,13 +88,23 @@ label{display:flex;gap:6px;align-items:center;color:var(--mut)}
 body.hide #lsw{left:12px}body.live #host{display:none}
 #empty{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--mut);font-size:17px;line-height:1.6;pointer-events:none}#empty[hidden],#load.on~#empty{display:none}#empty small{font-size:12px}
 @media(max-width:720px){#lsw{left:8px;bottom:calc(46dvh + 12px)}#hud{left:64px!important}body.hide #lsw{bottom:24px}}
+#fb{position:fixed;inset:0;z-index:25;background:#080b10b0;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}#fb[hidden]{display:none}
+#fb-card{width:min(860px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+#fb-top{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bd)}#fb-crumbs{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}#fb-crumbs a{cursor:pointer;color:var(--acc)}#fb-q{width:150px}
+#fb-list{overflow-y:auto}.fb-row{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--bd);cursor:pointer}.fb-row:hover{background:#ffffff0d}
+.fb-th{flex:none;width:52px;height:52px;border-radius:6px;background:var(--in);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--mut)}.fb-th img{width:100%;height:100%;object-fit:cover}
+.fb-main{flex:1;min-width:0}.fb-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fb-main small,.fb-empty{color:var(--mut)}.fb-empty{padding:24px;text-align:center}.fb-act{display:flex;gap:6px;flex:none}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);padding:8px 16px;border-radius:20px;background:var(--panel);border:1px solid var(--bd);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}#toast.on{opacity:1}
+body:not(.live) #fbb{display:none}body.showcase #lsw{display:none!important}
+@media(max-width:720px){.fb-act{display:none}#fb-q{width:90px}}
+#lg span[data-k]{cursor:pointer}#lg .off{opacity:.35;text-decoration:line-through}
 </style>
 </head>
 <body>
 <button id="ui" aria-label="Hide or show panels" title="Hide / show panels">☰</button>
 <div id="p">
   <h1>U1 G-code viewer</h1>
-  <section id="job-summary" class="summary hidden"><div class="section-kicker">CURRENT JOB <span id="job-state"></span></div><div id="job-file" class="muted" style="margin:0 0 4px;overflow-wrap:anywhere"></div><div id="job-pct" class="big-percent">—</div><div id="bar"><i></i></div><div class="job-stats"><div><small>Elapsed</small><b id="job-elapsed">—</b></div><div><small>Remaining</small><b id="job-remaining">—</b></div><div><small>Layer</small><b id="job-layer">—</b></div></div></section>
+  <section id="job-summary" class="summary hidden"><div class="section-kicker">CURRENT JOB <span id="job-state"></span></div><div id="job-file" class="muted" style="margin:0 0 4px;overflow-wrap:anywhere"></div><div id="job-pct" class="big-percent">—</div><div id="bar"><i></i></div><div class="job-stats"><div><small>Elapsed</small><b id="job-elapsed">—</b></div><div><small>Remaining</small><b id="job-remaining">—</b></div><div><small>Layer</small><b id="job-layer">—</b></div></div><div class="row" style="margin:8px 0 0"><button id="jp">Pause</button><button id="jc">Cancel</button><button id="jx" title="Exclude objects from this print">Objects</button></div></section>
   <div class="row">
     <input type="text" id="host" placeholder="printer address, e.g. 192.168.1.50" aria-label="Printer address" spellcheck="false">
     <button id="cb">Connect</button>
@@ -103,29 +113,34 @@ body.hide #lsw{left:12px}body.live #host{display:none}
   <section id="system-summary" class="summary hidden"><div class="section-kicker">PRINTER SYSTEM</div><div class="system-stats"><div><small>CPU</small><b id="left-cpu">—</b></div><div><small>CPU temp</small><b id="left-cputemp">—</b></div><div><small>Memory</small><b id="left-memory">—</b></div></div></section>
   <div class="row">
     <label class="btn" style="color:var(--fg)">Open file<input type="file" id="f" accept=".gcode,.gco,.g,.txt" hidden></label>
+    <button id="fbb" title="Browse printer files (B)">☰ Printer files</button>
     <span id="st">Drop a .gcode file or connect</span>
   </div>
   <div id="info"></div>
   <label for="sl" style="justify-content:space-between"><span>Layer</span><b id="ll" style="color:var(--fg)">–</b></label>
+  <div id="lstat" class="muted" style="margin:-4px 0 8px"></div>
   <label><input type="checkbox" id="fol" checked> Follow live print</label>
   <label><input type="checkbox" id="gh" checked> Show unprinted preview</label>
   <label><input type="checkbox" id="orb"> Slowly orbit print <span style="opacity:.6">(O)</span></label>
+  <div class="row"><label><input type="checkbox" id="xtr"> Travel <span style="opacity:.6">(T)</span></label><label><input type="checkbox" id="xrt"> Retracts <span style="opacity:.6">(X)</span></label><label><input type="checkbox" id="xsm"> Seams <span style="opacity:.6">(E)</span></label></div>
   <details id="more"><summary>View options &amp; HUD</summary>
   <label><input type="checkbox" id="one"> Current layer only</label>
   <div class="row" style="margin:8px 0 0"><label for="cm" style="flex:none">Color Parts By</label><select id="cm"><option value="tool">Tool</option><option value="type">Feature</option><option value="speed">Speed</option><option value="height">Height</option></select></div>
   <div class="row"><label for="nc" style="flex:none">Color Nozzle By</label><select id="nc"><option value="filament">Filament</option><option value="tool">Tool</option><option value="type">Feature</option><option value="speed">Speed</option><option value="height">Height</option><option value="solid">Solid</option></select></div>
   <div class="row" id="solid-wrap" hidden><label for="solid-color" style="flex:none">Nozzle color</label><input id="solid-color" type="color" value="#ffffff"></div>
-  <div class="row"><label for="rs" style="flex:none">Render style</label><select id="rs"><option value="line">Lines (1px)</option><option value="rib">Ribbons (3D)</option></select></div>
+  <div class="row"><label for="rs" style="flex:none">Render style</label><select id="rs"><option value="rib">Ribbons (3D)</option><option value="glow">Ribbons · recency glow</option><option value="neon">Ribbons · neon</option><option value="line">Lines (1px)</option></select></div>
   <div id="lg"></div>
   <div id="hudopts" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px"><span style="color:var(--mut)">HUD</span></div>
   <div class="row" style="margin:8px 0 0"><button id="fitb">Fit view</button></div>
-  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels, O orbit, C fullscreen camera</div>
+  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels, O orbit, C fullscreen camera, P unprinted, 1–4 style presets, R render style, M/N color modes, V view, L follow live, S showcase, B printer files, T/X/E travel/retracts/seams, G bed mesh, K snapshot, Y record</div>
   <div id="dbg"></div></details>
 </div>
 <div id="load" role="status" aria-live="polite"><div class="spin"></div><div><b id="lt">Loading…</b><div id="ls"></div><div class="tr" id="lb"><i id="lp" style="width:0"></i></div></div></div>
 <div id="hud"></div>
 <div id="drop">Drop G-code to view</div>
 <div id="lsw"><small id="lsmax">–</small><input type="range" id="sl" min="0" max="0" value="0" aria-label="Layer" title="Layer"><b id="lsv">–</b></div>
+<div id="fb" hidden><div id="fb-card"><div id="fb-top"><div id="fb-crumbs"></div><input id="fb-q" type="search" placeholder="Search…" aria-label="Search files"><select id="fb-sort" aria-label="Sort"><option value="modified">Newest</option><option value="name">Name</option><option value="size">Size</option><option value="time">Print time</option></select><button id="fb-x" aria-label="Close">✕</button></div><div id="fb-list"></div></div></div>
+<div id="toast"></div>
 <div id="empty">Drop a .gcode file here<br><small>or connect to your printer</small></div>
 <div id="camfs" hidden><div id="camfs-msg"></div><button id="camfs-x" aria-label="Exit fullscreen camera" title="Exit (Esc)">✕</button></div>
 
@@ -1219,23 +1234,24 @@ addEventListener('resize', resize); resize();
 
 /* ---------- parser ---------- */
 let colors = PAL.slice();
-async function parse(text) {
-  colors = PAL.slice(); // Prevent colors from a previous file leaking into this one.
+function parseCore(text, C, PAL, post) {   // pure: also runs inside a Web Worker
+  let colors = PAL.slice();
   const fc = text.match(/^;\s*filament_colou?r\s*=\s*(.+)$/m);
   if (fc) { const l = fc[1].split(/[;,]/).map(s => s.trim()).filter(s => /^#[0-9a-f]{6}$/i.test(s)); if (l.length) colors = l; }
-  const rgb = colors.map(c => new THREE.Color(c));
-  const pos = [], off = [], ls = [], tl = [], fd = [], ty = [], types = [], ct = []; let feed = 0, type = 0, tm = 0;
+  const pos = [], off = [], ls = [], tl = [], fd = [], ty = [], types = [], ct = [], tp = [], tn = [], rp = [], rn = [], up = [], un = [], sp = [], sn = [];
+  let feed = 0, type = 0, tm = 0, runStart = true;
   let x = 0, y = 0, z = 0, e = 0, abs = true, absE = true, tool = 0, lz = -1, o = 0;
-  const lines = text.split('\n');
   const seg = (ax, ay, az, bx, by, bz, so) => {
+    if (runStart) { runStart = false; if (/outer wall/i.test(types[type] || '')) { sp.push(ax - C, az, -(ay - C)); sn.push(off.length); } }   // seam = start of an outer-wall run
     if (Math.abs(bz - lz) > 1e-4 && Math.abs(az - lz) > 1e-4) { ls.push(off.length); lz = bz; }
     pos.push(ax - C, az, -(ay - C), bx - C, bz, -(by - C));
     off.push(so); tl.push(tool); fd.push(feed); ty.push(type);
     tm += Math.hypot(bx - ax, by - ay, bz - az) / (feed || 50); ct.push(tm);
   };
-  for (let i = 0; i < lines.length; i++) {
-    let l = lines[i]; const so = o; o += l.length + 1;
-    if (i && !(i & 0x3ffff)) { const pc = Math.round(i / lines.length * 100); loading('Parsing ' + parseName, pc + '% of ' + lines.length.toLocaleString() + ' lines', pc); await new Promise(r => setTimeout(r)); }
+  for (let p = 0, i = 0; p <= text.length; i++) {
+    let q = text.indexOf('\n', p); if (q < 0) q = text.length;
+    let l = text.slice(p, q); const so = p; p = q + 1;
+    if (i && !(i & 0x3ffff)) post(Math.round(p / text.length * 100), i);
     if (l.startsWith(';TYPE:')) { const t = l.slice(6).trim(); let k = types.indexOf(t); if (k < 0) k = types.push(t) - 1; type = k; continue; }
     const sc = l.indexOf(';'); if (sc >= 0) l = l.slice(0, sc);
     l = l.trim(); if (!l) continue;
@@ -1269,22 +1285,38 @@ async function parse(text) {
           seg(px, py, z, qx, qy, nz, so); px = qx; py = qy;
         }
       } else if (ext) seg(x, y, z, nx, ny, nz, so);
+      if (de < 0 && nx === x && ny === y) { rp.push(x - C, z, -(y - C)); rn.push(off.length); runStart = true; }          // retract
+      else if (de > 0 && nx === x && ny === y) { up.push(x - C, z, -(y - C)); un.push(off.length); }                   // unretract
+      else if (!ext && de <= 0 && (nx !== x || ny !== y || nz !== z)) { tp.push(x - C, z, -(y - C), nx - C, nz, -(ny - C)); tn.push(off.length); runStart = true; }   // travel / wipe
       x = nx; y = ny; z = nz; e = ne;
     }
   }
-  return { pos: new Float32Array(pos), tl: Uint8Array.from(tl), fd: Float32Array.from(fd), ty: Uint8Array.from(ty), types, ct: Float32Array.from(ct), off: Float64Array.from(off), ls, n: off.length };
+  return { colors, ex: { tp: Float32Array.from(tp), tn: Uint32Array.from(tn), rp: Float32Array.from(rp), rn: Uint32Array.from(rn), up: Float32Array.from(up), un: Uint32Array.from(un), sp: Float32Array.from(sp), sn: Uint32Array.from(sn) }, pos: new Float32Array(pos), tl: Uint8Array.from(tl), fd: Float32Array.from(fd), ty: Uint8Array.from(ty), types, ct: Float32Array.from(ct), off: Float64Array.from(off), ls, n: off.length };
+}
+
+function parse(text) {
+  const done = m => { colors = m.colors; return m; };
+  try {
+    const src = 'const parseCore=' + parseCore + ';onmessage=e=>{const [t,C,P]=e.data,m=parseCore(t,C,P,(pc,n)=>postMessage({pc,n})),tr=[];(function f(o){for(const v of Object.values(o)){if(v&&v.buffer instanceof ArrayBuffer)tr.push(v.buffer);else if(v&&typeof v==="object"&&!Array.isArray(v))f(v)}})(m);postMessage({m},tr)};';
+    const url = URL.createObjectURL(new Blob([src])), w = new Worker(url);
+    return new Promise(res => {
+      w.onmessage = e => { if (e.data.m) { w.terminate(); URL.revokeObjectURL(url); res(done(e.data.m)); } else loading('Parsing ' + parseName, e.data.pc + '% · ' + e.data.n.toLocaleString() + ' lines', e.data.pc); };
+      w.onerror = () => { w.terminate(); res(done(parseCore(text, C, PAL, () => {}))); };   // no worker available: parse on the main thread
+      w.postMessage([text, C, PAL]);
+    });
+  } catch (e) { return Promise.resolve(done(parseCore(text, C, PAL, () => {}))); }
 }
 
 /* ---------- model ---------- */
-let M = null, gA, gB, lA, lB, rA, rB, cur = 0;
+let M = null, gA, gB, lA, lB, rA, rB, cur = 0, EX = [];
 const ub = (a, v) => { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] <= v) lo = m + 1; else hi = m; } return lo; };
 const lb = (a, v) => { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < v) lo = m + 1; else hi = m; } return lo; };
 const layerOf = i => Math.max(0, ub(M.ls, i) - 1);
 const layerEnd = l => l + 1 < M.ls.length ? M.ls[l + 1] : M.n;
 
 function build(m) {
-  [lA, lB, rA, rB].forEach(l => { if (l) { scene.remove(l); l.geometry.dispose(); } }); rA = rB = null;
-  M = m;
+  [lA, lB, rA, rB, ...EX].forEach(l => { if (l) { scene.remove(l); l.geometry.dispose(); } }); rA = rB = null; EX = [];
+  M = m; HID.tool.clear(); HID.type.clear();
   { let a = 1e9, b = 1e9, c = -1e9, d = -1e9;
     for (let i = 0; i < m.pos.length; i += 3) { const x = m.pos[i] + C, y = C - m.pos[i + 2]; if (x < a) a = x; if (x > c) c = x; if (y < b) b = y; if (y > d) d = y; }
     m.box = [a, b, c, d]; }
@@ -1296,7 +1328,7 @@ function build(m) {
   lA = new THREE.LineSegments(gA, new THREE.LineBasicMaterial({ vertexColors: true }));
   lB = new THREE.LineSegments(gB, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.13 }));
   lA.frustumCulled = lB.frustumCulled = false; lB.visible = $('gh').checked;
-  scene.add(lB, lA); { const ix = new Float32Array(m.n); for (let i = 0; i < m.n; i++) ix[i] = i; m.idx = ix; }
+  scene.add(lB, lA); buildExtras(m); { const ix = new Float32Array(m.n); for (let i = 0; i < m.n; i++) ix[i] = i; m.idx = ix; }
   $('lsw').classList.add('on'); $('empty').hidden = true; $('lsmax').textContent = m.ls.length; applyStyle();
   $('sl').max = Math.max(0, m.ls.length - 1);
   show(m.n); $('sl').value = $('sl').max;
@@ -1305,8 +1337,8 @@ function show(n) {
   if (!M) return;
   cur = n = Math.max(0, Math.min(M.n, n));
   const s0 = $('one').checked && n ? M.ls[layerOf(n - 1)] : 0;
-  gA.setDrawRange(s0 * 2, (n - s0) * 2); gB.setDrawRange(n * 2, (M.n - n) * 2); ribRange(s0, n);
-  redrawLayer(); updateNozzleColor(); $('lsv').textContent = n ? layerOf(n - 1) + 1 : 0;
+  gA.setDrawRange(s0 * 2, (n - s0) * 2); gB.setDrawRange(n * 2, (M.n - n) * 2); ribRange(s0, n); extrasRange(s0, n);
+  redrawLayer(); updateNozzleColor(); $('lsv').textContent = n ? layerOf(n - 1) + 1 : 0; layerStats(n);
   $('ll').textContent = M.n ? `${n ? layerOf(n - 1) + 1 : 0} / ${M.ls.length}${n ? ' · Z ' + M.pos[M.ls[layerOf(n - 1)] * 6 + 1].toFixed(2) : ''}` : '–';
   if (!(live && ws && ws.readyState === 1 && livePos()) && n) {
     const p = M.pos, i = (n - 1) * 6 + 3; marker.position.set(p[i], p[i + 1], p[i + 2]); marker.visible = true;
@@ -1330,6 +1362,7 @@ function gradRange(mode) {   // speed: 1st–99th percentile so one fast outlier
   else for (let i = 0; i < n; i++) { if (a[i] < lo) lo = a[i]; if (a[i] > hi) hi = a[i]; }
   return M[key] = [lo, hi];
 }
+const HID = { tool: new Set(), type: new Set() };   // categories hidden via the legend
 let mode = 'tool';
 function recolor() {
   if (!M) return;
@@ -1338,31 +1371,33 @@ function recolor() {
   if (mode === 'speed' || mode === 'height') {
     [lo, hi] = gradRange(mode);
   }
+  const hid = new Float32Array(n), anyH = HID.tool.size || HID.type.size;
   for (let i = 0; i < n; i++) {
     if (mode === 'tool') t.copy(rgb[M.tl[i] % rgb.length]);
     else if (mode === 'type') t.copy(tcol[M.ty[i]]);
     else { const v = mode === 'speed' ? M.fd[i] : M.pos[i * 6 + 1]; turbo((v - lo) / (hi - lo || 1), t); }
+    if (anyH && (HID.tool.has(M.tl[i]) || HID.type.has(M.ty[i]))) { hid[i] = 1; t.setRGB(0, 0, 0); }   // ribbons skip them; 1px lines fade to black
     const j = i * 6; c[j] = c[j + 3] = t.r; c[j + 1] = c[j + 4] = t.g; c[j + 2] = c[j + 5] = t.b;
   }
   for (const g of [gA, gB]) g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-  M.col = c;
-  if (rA) { const ib = new THREE.InstancedInterleavedBuffer(c, 6, 1); for (const r of [rA, rB]) r.geometry.setAttribute('col', new THREE.InterleavedBufferAttribute(ib, 3, 0)); }
+  M.col = c; M.hid = hid;
+  if (rA) { const ib = new THREE.InstancedInterleavedBuffer(c, 6, 1); for (const r of [rA, rB]) { r.geometry.setAttribute('col', new THREE.InterleavedBufferAttribute(ib, 3, 0)); r.geometry.setAttribute('hid', new THREE.InstancedBufferAttribute(hid, 1)); } }
   redrawLayer();
-  $('lg').innerHTML = mode === 'tool' ? colors.slice(0, 4).map((k, i) => `<span><i style="background:${k}"></i>T${i}</span>`).join('')
-    : mode === 'type' ? (M.types.length ? M.types.map((nm, i) => `<span><i style="background:#${typeColor(nm, i).getHexString()}"></i>${esc(nm)}</span>`).join('') : '<span>No ;TYPE: comments in this file</span>')
+  $('lg').innerHTML = mode === 'tool' ? colors.slice(0, 4).map((k, i) => `<span data-k="${i}" class="${HID.tool.has(i) ? 'off' : ''}"><i style="background:${k}"></i>T${i}</span>`).join('')
+    : mode === 'type' ? (M.types.length ? M.types.map((nm, i) => `<span data-k="${i}" class="${HID.type.has(i) ? 'off' : ''}"><i style="background:#${typeColor(nm, i).getHexString()}"></i>${esc(nm)}</span>`).join('') : '<span>No ;TYPE: comments in this file</span>')
     : `<span><i style="background:linear-gradient(90deg,${gradCss()});width:80px"></i>${lo.toFixed(mode === 'speed' ? 0 : 1)} – ${hi.toFixed(mode === 'speed' ? 0 : 1)} ${mode === 'speed' ? 'mm/s' : 'mm'}</span>`;
 }
-const RIB_VS = `attribute vec3 pa; attribute vec3 pb; attribute vec3 col; attribute float idx;
-uniform float uW, uFrom, uTo; uniform vec2 uRes; varying vec3 vC; varying float vS;
+const RIB_VS = `attribute vec3 pa; attribute vec3 pb; attribute vec3 col; attribute float idx; attribute float hid;
+uniform float uW, uFrom, uTo, uHead, uTau; uniform vec2 uRes; varying vec3 vC; varying float vS;
 void main(){
   vec4 ca = projectionMatrix * modelViewMatrix * vec4(pa, 1.), cb = projectionMatrix * modelViewMatrix * vec4(pb, 1.);
-  if (idx < uFrom || idx >= uTo || ca.w <= 0. || cb.w <= 0.) { gl_Position = vec4(2., 2., 2., 1.); return; }
+  if (idx < uFrom || idx >= uTo || hid > .5 || ca.w <= 0. || cb.w <= 0.) { gl_Position = vec4(2., 2., 2., 1.); return; }
   vec2 d = (cb.xy / cb.w - ca.xy / ca.w) * uRes * .5;                 // segment direction in pixels
   float l = length(d); d = l < 1e-4 ? vec2(1., 0.) : d / l;
   vec4 c = mix(ca, cb, position.x);
   float wpx = max(uW * uRes.y * .5 * projectionMatrix[1][1] / c.w, 1.3);   // world width -> pixels, never thinner than 1.3 px
   vec2 o = (vec2(-d.y, d.x) * position.y + d * (position.x * 2. - 1.)) * wpx / uRes;
-  c.xy += o * c.w; gl_Position = c; vC = col; vS = position.y;
+  c.xy += o * c.w; gl_Position = c; vC = col * (uTau > 0. ? mix(.2, 1.15, exp(-max(uHead - idx, 0.) / uTau)) : 1.); vS = position.y;
 }`;
 const RIB_FS = `uniform float uA; varying vec3 vC; varying float vS; void main(){ gl_FragColor = vec4(vC * (1. - .35 * vS * vS), uA); }`;
 function ensureRib() {
@@ -1372,18 +1407,21 @@ function ensureRib() {
     const g = new THREE.InstancedBufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, 1, 0]), 3)); g.setIndex([0, 1, 2, 0, 2, 3]);
     g.setAttribute('pa', new THREE.InterleavedBufferAttribute(ibp, 3, 0)); g.setAttribute('pb', new THREE.InterleavedBufferAttribute(ibp, 3, 3));
-    g.setAttribute('col', new THREE.InterleavedBufferAttribute(ibc, 3, 0)); g.setAttribute('idx', new THREE.InstancedBufferAttribute(M.idx, 1)); g.instanceCount = M.n;
+    g.setAttribute('col', new THREE.InterleavedBufferAttribute(ibc, 3, 0)); g.setAttribute('idx', new THREE.InstancedBufferAttribute(M.idx, 1)); g.setAttribute('hid', new THREE.InstancedBufferAttribute(M.hid, 1)); g.instanceCount = M.n;
     const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: RIB_VS, fragmentShader: RIB_FS, transparent: a < 1, depthWrite: a === 1, side: THREE.DoubleSide,
-      uniforms: { uW: { value: .45 }, uRes: ribRes, uFrom: { value: 0 }, uTo: { value: 0 }, uA: { value: a } } }));
+      uniforms: { uW: { value: .45 }, uRes: ribRes, uFrom: { value: 0 }, uTo: { value: 0 }, uHead: { value: 0 }, uTau: { value: 0 }, uA: { value: a } } }));
     m.frustumCulled = false; scene.add(m); return m;
   };
   rA = mk(1); rB = mk(.13);
 }
-function ribRange(s0, n) { if (!rA) return; const a = rA.material.uniforms, b = rB.material.uniforms; a.uFrom.value = s0; a.uTo.value = n; b.uFrom.value = n; b.uTo.value = M.n; }
+function ribRange(s0, n) { if (!rA) return; const a = rA.material.uniforms, b = rB.material.uniforms; a.uFrom.value = s0; a.uTo.value = n; a.uHead.value = n; b.uFrom.value = n; b.uTo.value = M.n; }
 function applyStyle() {
-  const r = $('rs').value === 'rib', g = $('gh').checked; if (r) ensureRib();
+  const sv = $('rs').value, r = sv !== 'line', g = $('gh').checked; if (r) ensureRib();
   if (lA) { lA.visible = !r; lB.visible = !r && g; }
-  if (rA) { rA.visible = r; rB.visible = r && g; }
+  if (rA) { rA.visible = r; rB.visible = r && g;
+    const m = rA.material, neon = sv === 'neon';   // glow: recent segments bright, older ones fade; neon: additive blending
+    m.uniforms.uTau.value = sv === 'glow' ? Math.max(2000, M.n * .02) : 0; m.uniforms.uA.value = neon ? .5 : 1;
+    m.blending = neon ? THREE.AdditiveBlending : THREE.NormalBlending; m.transparent = neon; m.depthWrite = !neon; m.needsUpdate = true; }
   if (M) show(cur);
 }
 function fit() {
@@ -1550,10 +1588,10 @@ $('more').open = !matchMedia('(max-width:720px)').matches;
 $('cm').onchange = e => { mode = e.target.value; recolor(); saveView(); };
 $('nc').onchange = () => { $('solid-wrap').hidden = $('nc').value !== 'solid'; updateNozzleColor(); saveView(); };
 $('solid-color').oninput = () => { updateNozzleColor(); saveView(); };
-const saveView = () => { localStorage.setItem('u1view', JSON.stringify({ gh: $('gh').checked, one: $('one').checked, cm: $('cm').value, nc: $('nc').value, solid: $('solid-color').value, fol: $('fol').checked, orb: $('orb').checked, rs: $('rs').value })); syncURL(); };
+const saveView = () => { localStorage.setItem('u1view', JSON.stringify({ gh: $('gh').checked, one: $('one').checked, cm: $('cm').value, nc: $('nc').value, solid: $('solid-color').value, fol: $('fol').checked, orb: $('orb').checked, rst: $('rs').value })); syncURL(); };
 try {
   const v = JSON.parse(localStorage.getItem('u1view'));
-  if (v) { $('gh').checked = v.gh !== false; $('one').checked = !!v.one; $('cm').value = v.cm || 'tool'; $('nc').value = v.nc || 'filament'; $('solid-color').value = v.solid || '#ffffff'; mode = $('cm').value; $('fol').checked = v.fol !== false; $('orb').checked = !!v.orb; $('rs').value = v.rs === 'rib' ? 'rib' : 'line'; }
+  if (v) { $('gh').checked = v.gh !== false; $('one').checked = !!v.one; $('cm').value = v.cm || 'tool'; $('nc').value = v.nc || 'filament'; $('solid-color').value = v.solid || '#ffffff'; mode = $('cm').value; $('fol').checked = v.fol !== false; $('orb').checked = !!v.orb; $('rs').value = ['rib','glow','neon','line'].includes(v.rst) ? v.rst : 'rib'; }
 } catch (e) {}
 // All configurable controls are mirrored in the URL; URL parameters override saved preferences.
 const urlParam = new URLSearchParams(location.search);
@@ -1576,6 +1614,7 @@ $('gh').onchange = () => { applyStyle(); redrawLayer(); saveView(); };
 addEventListener('keydown', e => {
   const t = e.target.tagName;
   if (t === 'SELECT' || (t === 'INPUT' && e.target.type !== 'checkbox') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!$('fb').hidden && e.key !== 'Escape') return;
   const step = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 }[e.key];
   if (step && M && M.n) {
     e.preventDefault(); $('fol').checked = false;
@@ -1585,7 +1624,22 @@ addEventListener('keydown', e => {
   else if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('hide');
   else if (e.key === 'o' || e.key === 'O') { $('orb').checked = !$('orb').checked; $('orb').onchange(); }
   else if (e.key === 'c' || e.key === 'C') camFullscreen();
-  else if (e.key === 'Escape' && camFs) camFullscreen(false);
+  else if (e.key === 'Escape') { if (!$('fb').hidden) fbShow(false); else if (camFs) camFullscreen(false); else if (showT) showcase(false); }
+  else if (e.key === 'p' || e.key === 'P') { $('gh').checked = !$('gh').checked; $('gh').onchange(); toast('Unprinted preview ' + ($('gh').checked ? 'on' : 'off')); }
+  else if (PRESETS[e.key]) preset(e.key);
+  else if (e.key === 'r' || e.key === 'R') { cyc('rs'); toast('Render: ' + $('rs').selectedOptions[0].text); }
+  else if (e.key === 'm' || e.key === 'M') { cyc('cm'); toast('Parts by ' + $('cm').selectedOptions[0].text.toLowerCase()); }
+  else if (e.key === 'n' || e.key === 'N') { cyc('nc'); toast('Nozzle by ' + $('nc').selectedOptions[0].text.toLowerCase()); }
+  else if (e.key === 'v' || e.key === 'V') viewPreset();
+  else if (e.key === 'l' || e.key === 'L') { $('fol').checked = !$('fol').checked; saveView(); toast('Follow live ' + ($('fol').checked ? 'on' : 'off')); }
+  else if (e.key === 's' || e.key === 'S') showcase();
+  else if (e.key === 'b' || e.key === 'B') { if (live) fbShow(); }
+  else if (e.key === 'g' || e.key === 'G') { if (live) meshToggle(); }
+  else if (e.key === 'k' || e.key === 'K') snap();
+  else if (e.key === 'y' || e.key === 'Y') record();
+  else if (e.key === 't' || e.key === 'T') { $('xtr').click(); toast('Travel moves ' + ($('xtr').checked ? 'on' : 'off')); }
+  else if (e.key === 'x' || e.key === 'X') { $('xrt').click(); toast('Retracts ' + ($('xrt').checked ? 'on' : 'off')); }
+  else if (e.key === 'e' || e.key === 'E') { $('xsm').click(); toast('Seams ' + ($('xsm').checked ? 'on' : 'off')); }
 });
 $('sl').oninput = e => { $('fol').checked = false; show(layerEnd(+e.target.value)); };
 
@@ -1713,7 +1767,7 @@ function updateLeftPane() {
     $('dl').hidden=!dlSrc;
   }
   if(hasJob){const ps=st.print_stats,pr=st.virtual_sdcard&&st.virtual_sdcard.progress,elapsed=ps.print_duration||0;
-    $('job-state').textContent=ps.state||''; $('job-file').textContent=(ps.filename||'').split('/').pop(); $('job-pct').textContent=pr!=null?(pr*100).toFixed(0)+'%':'—';
+    $('job-state').textContent=ps.state||''; $('job-file').textContent=(ps.filename||'').split('/').pop(); $('jp').textContent = ps.state === 'paused' ? 'Resume' : 'Pause'; $('job-pct').textContent=pr!=null?(pr*100).toFixed(0)+'%':'—';
     $('bar').firstChild.style.width=(pr!=null?pr*100:0)+'%';$('job-elapsed').textContent=dur(elapsed);
     $('job-remaining').textContent=pr>0.02&&ps.state==='printing'?dur(elapsed*(1-pr)/pr):'—';
     const inf=ps.info||{};$('job-layer').textContent=inf.current_layer!=null?inf.current_layer+(inf.total_layer?' / '+inf.total_layer:''):hasFile&&cur?layerOf(Math.max(0,cur-1))+1+' / '+M.ls.length:'—';
@@ -1948,6 +2002,172 @@ function camFullscreen(on = !camFs) {
 }
 $('camfs-b').onclick = $('camfs-x').onclick = $('cam').onclick = () => camFullscreen();
 document.addEventListener('fullscreenchange', () => { if (camFs && !document.fullscreenElement) camFullscreen(false); });
+
+/* ---------- presets, views, toast ---------- */
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
+const cyc = id => { const el = $(id); el.selectedIndex = (el.selectedIndex + 1) % el.options.length; el.onchange({ target: el }); };
+const PRESETS = { 1: ['tool', 'filament'], 2: ['type', 'filament'], 3: ['tool', 'type'], 4: ['type', 'type'] };   // [parts by, nozzle by]
+function preset(k) {
+  const [c, n] = PRESETS[k]; $('cm').value = c; $('nc').value = n; $('cm').onchange({ target: $('cm') }); $('nc').onchange();
+  toast(`Preset ${k}: parts by ${c === 'type' ? 'feature' : c}, nozzle by ${n === 'type' ? 'feature' : n}`);
+}
+let viewI = 0;
+function viewPreset() {   // iso, top, front, side — keeps the current distance and target
+  const d = [[1, .8, 1], [0, 1, .0001], [0, .12, 1], [1, .12, 0]][viewI++ % 4];
+  cam.position.copy(ctl.target).add(new THREE.Vector3(...d).normalize().multiplyScalar(cam.position.distanceTo(ctl.target))); ctl.update();
+}
+
+/* ---------- showcase: cycle styles/colorings, orbit, hide panels; replays the print when idle ---------- */
+const SHOW = [['tool', 'filament', 'rib', 'Tool colors'], ['type', 'type', 'rib', 'Features'], ['speed', 'filament', 'glow', 'Speed · recency glow'],
+  ['height', 'filament', 'rib', 'Height'], ['type', 'type', 'neon', 'Features · neon'], ['tool', 'filament', 'line', 'Tool colors · lines']];
+let showT = null, showI = 0, replayT = null, showPrev = {};
+function replay() {
+  clearInterval(replayT); if (!M || !M.n || /^(printing|paused)$/.test(lastState || '')) return;
+  let n = 0; const step = M.n / 300; $('fol').checked = false;
+  replayT = setInterval(() => { n = Math.min(M.n, n + step); const k = Math.round(n); show(k); if (k) $('sl').value = layerOf(k - 1); if (n >= M.n) clearInterval(replayT); }, 50);
+}
+function showStep() {
+  const [c, n, r, name] = SHOW[showI++ % SHOW.length]; $('cm').value = c; $('nc').value = n; $('rs').value = r;
+  $('cm').onchange({ target: $('cm') }); $('nc').onchange(); $('rs').onchange(); toast(name); replay();
+}
+function showcase(on = !showT) {
+  if (on === !!showT) return;
+  if (on) {
+    showPrev = { hide: document.body.classList.contains('hide'), orb: $('orb').checked };
+    document.body.classList.add('hide', 'showcase'); $('orb').checked = true; $('orb').onchange(); showI = 0; showStep(); showT = setInterval(showStep, 25000);
+  } else {
+    clearInterval(showT); clearInterval(replayT); showT = null; document.body.classList.remove('showcase');
+    if (!showPrev.hide) document.body.classList.remove('hide'); $('orb').checked = showPrev.orb; $('orb').onchange(); toast('Showcase off');
+  }
+}
+
+/* ---------- printer file browser (Moonraker file manager) ---------- */
+let fbPath = 'gcodes', fbItems = null;
+const fbBase = () => 'http://' + localStorage.getItem('u1host'), fbUrl = p => p.split('/').map(encodeURIComponent).join('/');
+const fbT = t => Math.floor(t / 3600) + 'h ' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + 'm';
+function fbShow(on = $('fb').hidden) { $('fb').hidden = !on; if (on) { fbLoad(fbPath); $('fb-q').focus(); } }
+async function fbLoad(path) {
+  fbPath = path; $('fb-list').innerHTML = '<div class="fb-empty">Loading…</div>';
+  try {
+    const r = await fetch(fbBase() + '/server/files/directory?extended=true&path=' + encodeURIComponent(path));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    fbItems = (await r.json()).result;
+  } catch (e) { fbItems = null; $('fb-list').innerHTML = '<div class="fb-empty">Could not list files (' + esc(e.message) + ')</div>'; return; }
+  fbRender();
+}
+function fbRender() {
+  if (!fbItems) return;
+  const q = $('fb-q').value.toLowerCase(), srt = $('fb-sort').value, parts = fbPath.split('/');
+  $('fb-crumbs').innerHTML = parts.map((n, i) => `<a data-p="${esc(parts.slice(0, i + 1).join('/'))}">${esc(n)}</a>`).join(' / ');
+  const key = f => srt === 'name' ? f.filename.toLowerCase() : srt === 'size' ? -f.size : srt === 'time' ? -(f.estimated_time || 0) : -f.modified;
+  const dirs = fbItems.dirs.filter(d => d.dirname[0] !== '.' && d.dirname.toLowerCase().includes(q)).sort((a, b) => a.dirname.localeCompare(b.dirname));
+  const files = fbItems.files.filter(f => f.filename.toLowerCase().includes(q)).sort((a, b) => { const x = key(a), y = key(b); return x < y ? -1 : x > y ? 1 : 0; });
+  const thumb = f => { const t = (f.thumbnails || []).slice().sort((a, b) => b.width - a.width).find(t => t.width <= 400) || (f.thumbnails || [])[0]; return t ? `<img loading="lazy" src="${esc(fbBase() + '/server/files/' + fbUrl(fbPath + '/' + t.relative_path))}">` : '◇'; };
+  const row = (attr, th, main, act) => `<div class="fb-row" ${attr}><span class="fb-th">${th}</span><div class="fb-main">${main}</div>${act ? '<div class="fb-act"><button data-view>View</button><button data-print>Print</button></div>' : ''}</div>`;
+  $('fb-list').innerHTML = (parts.length > 1 ? row(`data-d="${esc(parts.slice(0, -1).join('/'))}"`, '↩', '<b>..</b>') : '')
+    + dirs.map(d => row(`data-d="${esc(fbPath + '/' + d.dirname)}"`, '📁', `<b>${esc(d.dirname)}</b>`)).join('')
+    + files.map(f => row(`data-f="${esc(fbPath + '/' + f.filename)}"`, thumb(f), `<b>${esc(f.filename)}</b><small>${mb(f.size)} · ${new Date(f.modified * 1000).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}${f.estimated_time ? ' · ⏱ ' + fbT(f.estimated_time) : ''}${f.filament_total ? ' · ' + (f.filament_total / 1000).toFixed(1) + ' m' : ''}${f.layer_height ? ' · ' + f.layer_height + ' mm' : ''}</small>`, true)).join('')
+    || '<div class="fb-empty">No matching files</div>';
+}
+async function loadRemote(f) {
+  if (f !== loaded) $('fol').checked = false;
+  loading('Downloading ' + f, 'Waiting for the printer…', null);
+  try {
+    const r = await fetch(fbBase() + '/server/files/gcodes/' + fbUrl(f));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const total = +r.headers.get('Content-Length') || 0, rd = r.body.getReader(), parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; loading('Downloading ' + f, mb(got) + (total ? ' of ' + mb(total) : ''), total ? got / total * 100 : null); }
+    const buf = new Uint8Array(got); let at = 0; for (const c of parts) { buf.set(c, at); at += c.length; }
+    setDl(new Blob([buf], { type: 'text/plain' }), f.split('/').pop()); clearEmbedded3mf(); const text = new TextDecoder().decode(buf);
+    await loadText(text, f); await setEmbeddedFromText(text, buf);
+  } catch (err) { doneLoading(); status('Could not fetch file (' + err.message + ').', 'bad'); }
+}
+$('fb-list').onclick = async e => {
+  const x = e.target.closest('[data-x]');
+  if (x) { if (confirm('Exclude ' + x.dataset.x + ' from this print?')) { await pcall('/printer/gcode/script?script=' + encodeURIComponent('EXCLUDE_OBJECT NAME=' + x.dataset.x), 'Excluded ' + x.dataset.x); fbShow(false); } return; }
+  const row = e.target.closest('.fb-row'); if (!row) return;
+  if (row.dataset.d) return fbLoad(row.dataset.d);
+  const path = row.dataset.f.replace(/^gcodes\//, '');
+  if (e.target.closest('[data-print]')) {
+    if (!confirm('Start printing ' + path + '?')) return;
+    try { const r = await fetch(fbBase() + '/printer/print/start?filename=' + encodeURIComponent(path), { method: 'POST' }); if (!r.ok) throw new Error('HTTP ' + r.status); fbShow(false); toast('Print started'); }
+    catch (err) { toast('Could not start print (' + err.message + ')'); }
+  } else { fbShow(false); loadRemote(path); }
+};
+$('fb-crumbs').onclick = e => { const a = e.target.closest('a'); if (a) fbLoad(a.dataset.p); };
+$('fb-q').oninput = $('fb-sort').onchange = fbRender;
+$('fb-q').onkeydown = e => { if (e.key === 'Escape') fbShow(false); };
+/* ---------- extras (travel / retract / seams) + legend filter ---------- */
+const XC = { tr: '#4a5cc4', rt: '#c632cf', ur: '#5ca6c6', sm: '#e6e6e6' };   // Orca legend colors (travel lifted slightly)
+function buildExtras(m) {
+  const x = m.ex, geo = pos => new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos, 3)), pt = (pos, c) => new THREE.Points(geo(pos), new THREE.PointsMaterial({ color: c, size: 5, sizeAttenuation: false }));
+  EX = [new THREE.LineSegments(geo(x.tp), new THREE.LineBasicMaterial({ color: XC.tr, transparent: true, opacity: .6 })), pt(x.rp, XC.rt), pt(x.up, XC.ur), pt(x.sp, XC.sm)];
+  EX.forEach(o => { o.frustumCulled = false; scene.add(o); }); extrasVis();
+}
+function extrasVis() { if (!EX.length) return; EX[0].visible = $('xtr').checked; EX[1].visible = EX[2].visible = $('xrt').checked; EX[3].visible = $('xsm').checked; }
+function extrasRange(s0, n) {
+  if (!EX.length) return; const x = M.ex;
+  const rg = (o, nn, d) => { const a = lb(nn, s0), b = ub(nn, n); o.geometry.setDrawRange(a * d, Math.max(0, b - a) * d); };
+  rg(EX[0], x.tn, 2); rg(EX[1], x.rn, 1); rg(EX[2], x.un, 1); rg(EX[3], x.sn, 1);
+}
+['xtr', 'xrt', 'xsm'].forEach(id => $(id).onchange = extrasVis);
+$('lg').onclick = e => {   // click a legend entry to hide it; shift-click to isolate it (again to restore)
+  const sp = e.target.closest('span[data-k]'); if (!sp || !M || (mode !== 'tool' && mode !== 'type')) return;
+  const k = +sp.dataset.k, H = HID[mode], ids = [...$('lg').querySelectorAll('[data-k]')].map(x => +x.dataset.k);
+  if (e.shiftKey) { const iso = !H.has(k) && ids.every(i => i === k || H.has(i)); H.clear(); if (!iso) ids.forEach(i => { if (i !== k) H.add(i); }); }
+  else if (H.has(k)) H.delete(k); else H.add(k);
+  recolor();
+};
+$('fb-x').onclick = () => fbShow(false); $('fb').onclick = e => { if (e.target === $('fb')) fbShow(false); }; $('fbb').onclick = () => fbShow();
+/* ---------- print controls, exclude objects, bed mesh, layer stats, snapshot / recording ---------- */
+const pcall = async (path, label) => { try { const r = await fetch(fbBase() + path, { method: 'POST' }); if (!r.ok) throw new Error('HTTP ' + r.status); toast(label); } catch (e) { toast(label + ' failed (' + e.message + ')'); } };
+$('jp').onclick = () => pcall('/printer/print/' + ($('jp').textContent === 'Resume' ? 'resume' : 'pause'), $('jp').textContent);
+$('jc').onclick = () => confirm('Cancel the current print?') && pcall('/printer/print/cancel', 'Cancelled');
+$('cb').addEventListener('click', () => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); });
+$('jx').onclick = async () => {
+  try {
+    const eo = (await (await fetch(fbBase() + '/printer/objects/query?exclude_object')).json()).result.status.exclude_object, ex = eo.excluded_objects || [];
+    $('fb').hidden = false; $('fb-crumbs').textContent = 'Objects in this print';
+    $('fb-list').innerHTML = (eo.objects || []).map(o => `<div class="fb-row"><span class="fb-th">▣</span><div class="fb-main"><b>${esc(o.name)}</b><small>${ex.includes(o.name) ? 'excluded' : (eo.current_object === o.name ? 'printing now' : '')}</small></div><div class="fb-act" style="display:flex"><button data-x="${esc(o.name)}" ${ex.includes(o.name) ? 'disabled' : ''}>Exclude</button></div></div>`).join('')
+      || '<div class="fb-empty">This print has no labeled objects (slicer needs “label objects”).</div>';
+  } catch (e) { toast('Could not read objects (' + e.message + ')'); }
+};
+let meshM = null;
+async function meshToggle() {
+  if (meshM) { scene.remove(meshM); meshM = null; return toast('Bed mesh hidden'); }
+  try {
+    const b = (await (await fetch(fbBase() + '/printer/objects/query?bed_mesh')).json()).result.status.bed_mesh, z = b.probed_matrix, R = z.length, K = z[0].length;
+    let lo = Infinity, hi = -Infinity; z.forEach(a => a.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }));
+    const cv = document.createElement('canvas'); cv.width = K; cv.height = R;
+    const cx = cv.getContext('2d'), im = cx.createImageData(K, R), c = new THREE.Color();
+    for (let r = 0; r < R; r++) for (let k = 0; k < K; k++) { turbo((z[r][k] - lo) / (hi - lo || 1), c); im.data.set([c.r * 255, c.g * 255, c.b * 255, 235], ((R - 1 - r) * K + k) * 4); }
+    cx.putImageData(im, 0, 0);
+    const [x0, y0] = b.mesh_min, [x1, y1] = b.mesh_max;
+    meshM = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, y1 - y0), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+    meshM.rotation.x = -Math.PI / 2; meshM.position.set((x0 + x1) / 2 - C, .05, -((y0 + y1) / 2 - C)); scene.add(meshM);
+    toast('Bed mesh: ' + (hi - lo).toFixed(3) + ' mm range (blue low, red high)');
+  } catch (e) { toast('No bed mesh available (' + e.message + ')'); }
+}
+function layerStats(n) {
+  const el = $('lstat'); if (!M || !n) { el.textContent = ''; return; }
+  const L = layerOf(n - 1), a = M.ls[L], e = layerEnd(L), by = {}; let len = 0;
+  for (let i = a; i < e; i++) { const j = i * 6, d = Math.hypot(M.pos[j + 3] - M.pos[j], M.pos[j + 4] - M.pos[j + 1], M.pos[j + 5] - M.pos[j + 2]); len += d; by[M.ty[i]] = (by[M.ty[i]] || 0) + d; }
+  el.textContent = `Z ${M.pos[a * 6 + 1].toFixed(2)} mm · ${(len / 1000).toFixed(2)} m path · ` + Object.entries(by).sort((p, q) => q[1] - p[1]).slice(0, 3).map(([t, d]) => `${M.types[t]} ${Math.round(d / len * 100)}%`).join(' · ');
+}
+function snap() {
+  renderer.render(scene, cam);
+  renderer.domElement.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'u1-view-' + Date.now() + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast('Saved snapshot'); });
+}
+let recorder = null, recChunks = [];
+function record() {
+  if (recorder) { recorder.stop(); return; }
+  if (!window.MediaRecorder) return toast('Recording is not supported in this browser');
+  recChunks = []; recorder = new MediaRecorder(renderer.domElement.captureStream(30), MediaRecorder.isTypeSupported('video/webm') ? { mimeType: 'video/webm' } : undefined);
+  recorder.ondataavailable = e => recChunks.push(e.data);
+  recorder.onstop = () => { const t = recorder.mimeType || 'video/webm', a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(recChunks, { type: t })); a.download = 'u1-timelapse-' + Date.now() + (t.includes('mp4') ? '.mp4' : '.webm'); a.click(); recorder = null; toast('Saved recording'); };
+  recorder.start(); toast('Recording… press Y to stop (start showcase for an automatic replay)');
+}
+
 drawHud(); syncURL();
 </script>
 </body>
