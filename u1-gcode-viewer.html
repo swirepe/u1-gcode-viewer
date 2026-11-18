@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>U1 live G-code viewer</title>
 <style>
-:root{--bg:#10141a;--panel:#161b23ee;--fg:#dbe2ec;--mut:#7f8b9b;--acc:#5cc8ff;--bd:#2a323e;--ok:#7bd88f;--bad:#ff6b5e}
+:root{--bg:#10141a;--in:#0c1015;--panel:#141922d6;--fg:#dbe2ec;--mut:#7f8b9b;--acc:#5cc8ff;--bd:#2a323e;--ok:#7bd88f;--bad:#ff6b5e}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:13px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
 canvas{display:block;width:100%;height:100%}
-#p{position:fixed;top:12px;left:12px;width:290px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:12px;backdrop-filter:blur(6px)}
+#p{position:fixed;top:12px;left:12px;width:320px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:12px;backdrop-filter:blur(10px) saturate(1.3)}
 #p h1{font-size:15px;font-weight:600;margin:0 0 10px}
-.row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
-input[type=text]{flex:1;min-width:0;background:#0c1015;border:1px solid var(--bd);border-radius:5px;color:var(--fg);padding:6px 8px;font:inherit}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center}
+input[type=text]{flex:1;min-width:0;background:var(--in);border:1px solid var(--bd);border-radius:5px;color:var(--fg);padding:6px 8px;font:inherit}
 button,.btn{background:#222a35;border:1px solid var(--bd);color:var(--fg);border-radius:5px;padding:6px 10px;font:inherit;cursor:pointer;white-space:nowrap}
 button:hover,.btn:hover{border-color:var(--acc)}
 button:focus-visible,input:focus-visible,.btn:focus-within{outline:2px solid var(--acc);outline-offset:1px}
 #st{color:var(--mut);font-size:12px;overflow-wrap:anywhere}
-#hud{position:fixed;top:12px;right:12px;width:300px;max-width:calc(100vw - 24px);display:flex;flex-direction:column;gap:8px;pointer-events:none;max-height:calc(100vh - 24px);overflow:hidden}
-.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;backdrop-filter:blur(6px)}
+#hud{position:fixed;right:12px;width:300px;max-width:calc(100vw - 24px);display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;backdrop-filter:blur(10px) saturate(1.3)}
 .card h2{font-size:12px;font-weight:600;color:var(--mut);margin:0 0 6px}
 canvas.g{width:100%;height:auto;display:block}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-variant-numeric:tabular-nums}
@@ -29,9 +29,9 @@ canvas.g{width:100%;height:auto;display:block}
 .leg i{width:10px;height:3px;border-radius:2px;display:inline-block}
 .fan{display:grid;grid-template-columns:70px 1fr 34px;gap:8px;align-items:center;margin:3px 0;font-size:12px}
 .fan span:last-child{text-align:right;color:var(--mut)}
-.tr{height:4px;background:#0c1015;border-radius:2px}
+.tr{height:4px;background:var(--in);border-radius:2px}
 .tr i{display:block;height:100%;background:var(--acc);border-radius:2px}
-#load{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);display:none;gap:14px;align-items:center;min-width:280px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;backdrop-filter:blur(6px);z-index:5}
+#load{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);display:none;gap:14px;align-items:center;min-width:280px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;backdrop-filter:blur(10px) saturate(1.3);z-index:5}
 #load.on{display:flex}
 #load>div:last-child{flex:1;min-width:0}
 #lt{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -39,13 +39,12 @@ canvas.g{width:100%;height:auto;display:block}
 .spin{flex:none;width:22px;height:22px;border:3px solid var(--bd);border-top-color:var(--acc);border-radius:50%;animation:sp .9s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
-select{flex:1;background:#0c1015;border:1px solid var(--bd);border-radius:5px;color:var(--fg);padding:5px 8px;font:inherit}
+select{flex:1;background:var(--in);border:1px solid var(--bd);border-radius:5px;color:var(--fg);padding:5px 8px;font:inherit}
 #hud{top:calc(60px + env(safe-area-inset-top));max-height:calc(100dvh - 72px - env(safe-area-inset-top));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none}
 .card{pointer-events:auto}
 #p{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
 #ui{position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;width:40px;height:40px;padding:0;font-size:18px;z-index:6;background:var(--panel)}
 body.hide #p,body.hide #hud{display:none}
-.row{flex-wrap:wrap}
 #st{flex:1 1 120px}
 .all{max-height:180px;overflow:auto;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mut);margin-top:6px;word-break:break-all}
 .all span{color:var(--fg)}
@@ -66,7 +65,7 @@ details#more[open]>summary{margin-bottom:6px}
 #st.ok{color:var(--ok)}#st.bad{color:var(--bad)}
 #info{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:10px 0;font-variant-numeric:tabular-nums}
 #info span:nth-child(odd){color:var(--mut)}
-#bar{height:4px;background:#0c1015;border-radius:2px;overflow:hidden;margin-bottom:10px}
+#bar{height:4px;background:var(--in);border-radius:2px;overflow:hidden;margin-bottom:10px}
 #bar i{display:block;height:100%;width:0;background:var(--acc)}
 input[type=range]{width:100%;accent-color:var(--acc)}
 label{display:flex;gap:6px;align-items:center;color:var(--mut)}
@@ -74,39 +73,61 @@ label{display:flex;gap:6px;align-items:center;color:var(--mut)}
 #lg span{display:flex;align-items:center;gap:4px;font-size:12px}
 #lg i{width:10px;height:10px;border-radius:2px;display:inline-block}
 #drop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#10141acc;font-size:18px;border:2px dashed var(--acc)}
+
+#solid-wrap[hidden]{display:none!important}
+.hidden{display:none!important}.summary{border:1px solid var(--bd);border-radius:9px;background:#101720aa;padding:10px;margin:9px 0}.section-kicker{font-size:10px;letter-spacing:.12em;font-weight:750;color:var(--mut);margin-bottom:8px;display:flex;justify-content:space-between}.file-head{display:flex;align-items:center;gap:10px}.file-head img,.thumb-placeholder{width:88px;height:88px;flex:none;object-fit:contain;background:#0a1019;border:1px solid var(--bd);border-radius:7px}.thumb-placeholder{display:grid;place-items:center;color:var(--mut);font-size:26px}.file-text{min-width:0;flex:1}.file-text strong{display:block;overflow-wrap:anywhere;font-size:12px}.muted{color:var(--mut);font-size:11px;margin:3px 0 9px}.big-percent{font-size:32px;line-height:1.2;font-weight:750;font-variant-numeric:tabular-nums}.job-stats,.system-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.job-stats>div,.system-stats>div{min-width:0}.job-stats small,.system-stats small{display:block;color:var(--mut);font-size:10px}.job-stats b,.system-stats b{display:block;font-size:12px;font-variant-numeric:tabular-nums}#file-summary #dl{font-size:11px;padding:4px 7px}#bar{margin:8px 0 10px}.sys-graph{margin:7px 0}.sys-graph>span{font-size:11px;color:var(--mut)}.sys-graph canvas{width:100%;height:56px;border:1px solid var(--bd);border-radius:5px;background:#0e141c}.leg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px;row-gap:5px}.leg span{min-width:0;overflow-wrap:anywhere}input[type=color]{width:55px;height:30px;background:transparent;border:1px solid var(--bd);border-radius:5px}
+.file-downloads{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.file-downloads button{flex:1;padding:6px 7px}#dl3mf{border-color:#397e91;color:#a1e7ff}#embedded-detail{font-size:11px;margin-top:4px}
+#c-cam{position:relative}#camfs-b{position:absolute;top:6px;right:8px;padding:1px 7px;font-size:14px;line-height:1.4}#cam{cursor:zoom-in}
+#camfs{position:fixed;inset:0;z-index:30;background:#000;display:flex;align-items:center;justify-content:center}#camfs[hidden]{display:none}
+#camfs #cam{width:100%!important;height:100%;object-fit:contain;border-radius:0!important;cursor:zoom-out}
+#camfs-msg{position:absolute;max-width:min(560px,80vw);padding:24px;text-align:center;color:var(--mut)}
+#camfs-x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;width:40px;height:40px;padding:0;font-size:18px;background:var(--panel);z-index:2}
+#lsw{display:none;position:fixed;left:344px;top:calc(60px + env(safe-area-inset-top));bottom:24px;width:46px;flex-direction:column;align-items:center;gap:6px;padding:10px 0;background:var(--panel);border:1px solid var(--bd);border-radius:23px;backdrop-filter:blur(10px) saturate(1.3);z-index:4}
+#lsw.on{display:flex}#lsw input{flex:1;margin:0;width:22px;height:auto;writing-mode:vertical-lr;direction:rtl}
+#lsw small{font-size:10px;color:var(--mut);font-variant-numeric:tabular-nums}#lsv{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+body.hide #lsw{left:12px}body.live #host{display:none}
+#empty{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--mut);font-size:17px;line-height:1.6;pointer-events:none}#empty[hidden],#load.on~#empty{display:none}#empty small{font-size:12px}
+@media(max-width:720px){#lsw{left:8px;bottom:calc(46dvh + 12px)}#hud{left:64px!important}body.hide #lsw{bottom:24px}}
 </style>
 </head>
 <body>
 <button id="ui" aria-label="Hide or show panels" title="Hide / show panels">☰</button>
 <div id="p">
   <h1>U1 G-code viewer</h1>
+  <section id="job-summary" class="summary hidden"><div class="section-kicker">CURRENT JOB <span id="job-state"></span></div><div id="job-file" class="muted" style="margin:0 0 4px;overflow-wrap:anywhere"></div><div id="job-pct" class="big-percent">—</div><div id="bar"><i></i></div><div class="job-stats"><div><small>Elapsed</small><b id="job-elapsed">—</b></div><div><small>Remaining</small><b id="job-remaining">—</b></div><div><small>Layer</small><b id="job-layer">—</b></div></div></section>
   <div class="row">
     <input type="text" id="host" placeholder="printer address, e.g. 192.168.1.50" aria-label="Printer address" spellcheck="false">
     <button id="cb">Connect</button>
   </div>
+  <section id="file-summary" class="summary hidden"><div class="section-kicker">LOADED FILE</div><div class="file-head"><div id="file-thumb" class="thumb-placeholder">◇</div><div class="file-text"><strong id="file-name"></strong><div id="file-stats" class="muted"></div><div class="file-downloads"><button id="dl" disabled title="Save the loaded G-code file">⤓ Save G-code</button><button id="dl3mf" hidden disabled title="Extract the embedded 3MF project">⤓ Save 3MF</button></div><div id="embedded-detail" class="muted" hidden></div></div></div></section>
+  <section id="system-summary" class="summary hidden"><div class="section-kicker">PRINTER SYSTEM</div><div class="system-stats"><div><small>CPU</small><b id="left-cpu">—</b></div><div><small>CPU temp</small><b id="left-cputemp">—</b></div><div><small>Memory</small><b id="left-memory">—</b></div></div></section>
   <div class="row">
     <label class="btn" style="color:var(--fg)">Open file<input type="file" id="f" accept=".gcode,.gco,.g,.txt" hidden></label>
-    <button id="dl" disabled title="Download the loaded G-code file">⤓ Save</button>
     <span id="st">Drop a .gcode file or connect</span>
   </div>
   <div id="info"></div>
-  <div id="bar"><i></i></div>
   <label for="sl" style="justify-content:space-between"><span>Layer</span><b id="ll" style="color:var(--fg)">–</b></label>
-  <input type="range" id="sl" min="0" max="0" value="0">
   <label><input type="checkbox" id="fol" checked> Follow live print</label>
   <label><input type="checkbox" id="gh" checked> Show unprinted preview</label>
+  <label><input type="checkbox" id="orb"> Slowly orbit print <span style="opacity:.6">(O)</span></label>
   <details id="more"><summary>View options &amp; HUD</summary>
   <label><input type="checkbox" id="one"> Current layer only</label>
-  <div class="row" style="margin:8px 0 0"><label for="cm" style="flex:none">Color by</label><select id="cm"><option value="tool">Tool</option><option value="type">Feature</option><option value="speed">Speed</option><option value="height">Height</option></select></div>
+  <div class="row" style="margin:8px 0 0"><label for="cm" style="flex:none">Color Parts By</label><select id="cm"><option value="tool">Tool</option><option value="type">Feature</option><option value="speed">Speed</option><option value="height">Height</option></select></div>
+  <div class="row"><label for="nc" style="flex:none">Color Nozzle By</label><select id="nc"><option value="filament">Filament</option><option value="tool">Tool</option><option value="type">Feature</option><option value="speed">Speed</option><option value="height">Height</option><option value="solid">Solid</option></select></div>
+  <div class="row" id="solid-wrap" hidden><label for="solid-color" style="flex:none">Nozzle color</label><input id="solid-color" type="color" value="#ffffff"></div>
+  <div class="row"><label for="rs" style="flex:none">Render style</label><select id="rs"><option value="line">Lines (1px)</option><option value="rib">Ribbons (3D)</option></select></div>
   <div id="lg"></div>
   <div id="hudopts" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px"><span style="color:var(--mut)">HUD</span></div>
   <div class="row" style="margin:8px 0 0"><button id="fitb">Fit view</button></div>
-  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels</div>
+  <div style="color:var(--mut);font-size:12px;margin-top:6px">Keys: ↑/↓ layer, PgUp/PgDn ±10, F fit, H hide panels, O orbit, C fullscreen camera</div>
   <div id="dbg"></div></details>
 </div>
 <div id="load" role="status" aria-live="polite"><div class="spin"></div><div><b id="lt">Loading…</b><div id="ls"></div><div class="tr" id="lb"><i id="lp" style="width:0"></i></div></div></div>
 <div id="hud"></div>
 <div id="drop">Drop G-code to view</div>
+<div id="lsw"><small id="lsmax">–</small><input type="range" id="sl" min="0" max="0" value="0" aria-label="Layer" title="Layer"><b id="lsv">–</b></div>
+<div id="empty">Drop a .gcode file here<br><small>or connect to your printer</small></div>
+<div id="camfs" hidden><div id="camfs-msg"></div><button id="camfs-x" aria-label="Exit fullscreen camera" title="Exit (Esc)">✕</button></div>
 
 <script>/* three.js r128 (MIT, (c) 2010-2021 three.js authors) - embedded for offline use */
 /**
@@ -1182,19 +1203,24 @@ cam.position.set(260, 260, 380);
 const ctl = new THREE.OrbitControls(cam, renderer.domElement);
 ctl.target.set(0, 70, 0); ctl.enableDamping = true;
 scene.add(new THREE.GridHelper(BED, 27, 0x3a4554, 0x232b36));
-const vol = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.BoxGeometry(BED, BED, BED)),
+const vol = new THREE.LineSegments(   // corner posts only
+  new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([-1, 1].flatMap(x => [-1, 1].flatMap(z => [x * C, -C, z * C, x * C, C, z * C])), 3)),
   new THREE.LineBasicMaterial({ color: 0x2a323e }));
 vol.position.y = C; scene.add(vol);
 const marker = new THREE.Mesh(new THREE.ConeGeometry(3, 12, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
 marker.geometry.rotateX(Math.PI); marker.geometry.translate(0, 6, 0); marker.visible = false; scene.add(marker);
-function resize() { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
+// Slightly larger contrasting shell: visible even against identically colored filament.
+const markerOutline = new THREE.Mesh(marker.geometry, new THREE.MeshBasicMaterial({color:0x071018,side:THREE.BackSide,depthTest:false}));
+markerOutline.scale.setScalar(1.21); marker.add(markerOutline); marker.renderOrder=20; markerOutline.renderOrder=19;
+const ribRes = { value: new THREE.Vector2(1, 1) };
+function resize() { ribRes.value.set(innerWidth, innerHeight); renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 (function loop() { requestAnimationFrame(loop); ctl.update(); renderer.render(scene, cam); })();
 
 /* ---------- parser ---------- */
 let colors = PAL.slice();
 async function parse(text) {
+  colors = PAL.slice(); // Prevent colors from a previous file leaking into this one.
   const fc = text.match(/^;\s*filament_colou?r\s*=\s*(.+)$/m);
   if (fc) { const l = fc[1].split(/[;,]/).map(s => s.trim()).filter(s => /^#[0-9a-f]{6}$/i.test(s)); if (l.length) colors = l; }
   const rgb = colors.map(c => new THREE.Color(c));
@@ -1250,14 +1276,14 @@ async function parse(text) {
 }
 
 /* ---------- model ---------- */
-let M = null, gA, gB, lA, lB, cur = 0;
+let M = null, gA, gB, lA, lB, rA, rB, cur = 0;
 const ub = (a, v) => { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] <= v) lo = m + 1; else hi = m; } return lo; };
 const lb = (a, v) => { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < v) lo = m + 1; else hi = m; } return lo; };
 const layerOf = i => Math.max(0, ub(M.ls, i) - 1);
 const layerEnd = l => l + 1 < M.ls.length ? M.ls[l + 1] : M.n;
 
 function build(m) {
-  [lA, lB].forEach(l => { if (l) { scene.remove(l); l.geometry.dispose(); } });
+  [lA, lB, rA, rB].forEach(l => { if (l) { scene.remove(l); l.geometry.dispose(); } }); rA = rB = null;
   M = m;
   { let a = 1e9, b = 1e9, c = -1e9, d = -1e9;
     for (let i = 0; i < m.pos.length; i += 3) { const x = m.pos[i] + C, y = C - m.pos[i + 2]; if (x < a) a = x; if (x > c) c = x; if (y < b) b = y; if (y > d) d = y; }
@@ -1270,7 +1296,8 @@ function build(m) {
   lA = new THREE.LineSegments(gA, new THREE.LineBasicMaterial({ vertexColors: true }));
   lB = new THREE.LineSegments(gB, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.13 }));
   lA.frustumCulled = lB.frustumCulled = false; lB.visible = $('gh').checked;
-  scene.add(lB, lA);
+  scene.add(lB, lA); { const ix = new Float32Array(m.n); for (let i = 0; i < m.n; i++) ix[i] = i; m.idx = ix; }
+  $('lsw').classList.add('on'); $('empty').hidden = true; $('lsmax').textContent = m.ls.length; applyStyle();
   $('sl').max = Math.max(0, m.ls.length - 1);
   show(m.n); $('sl').value = $('sl').max;
 }
@@ -1278,33 +1305,86 @@ function show(n) {
   if (!M) return;
   cur = n = Math.max(0, Math.min(M.n, n));
   const s0 = $('one').checked && n ? M.ls[layerOf(n - 1)] : 0;
-  gA.setDrawRange(s0 * 2, (n - s0) * 2); gB.setDrawRange(n * 2, (M.n - n) * 2);
-  redrawLayer();
+  gA.setDrawRange(s0 * 2, (n - s0) * 2); gB.setDrawRange(n * 2, (M.n - n) * 2); ribRange(s0, n);
+  redrawLayer(); updateNozzleColor(); $('lsv').textContent = n ? layerOf(n - 1) + 1 : 0;
   $('ll').textContent = M.n ? `${n ? layerOf(n - 1) + 1 : 0} / ${M.ls.length}${n ? ' · Z ' + M.pos[M.ls[layerOf(n - 1)] * 6 + 1].toFixed(2) : ''}` : '–';
   if (!(live && ws && ws.readyState === 1 && livePos()) && n) {
     const p = M.pos, i = (n - 1) * 6 + 3; marker.position.set(p[i], p[i + 1], p[i + 2]); marker.visible = true;
   }
 }
+const ORCA = { 'inner wall': '#ffe05c', 'outer wall': '#f1853f', 'sparse infill': '#a8382f', 'internal solid infill': '#9254c6', 'top surface': '#e9453d', 'custom': '#7ccb96',
+  'bottom surface': '#6560c6', 'internal bridge': '#5a80b8', 'bridge': '#4d80ba', 'overhang wall': '#1f1fff', 'gap infill': '#ffffff', 'support': '#00ff00',
+  'support interface': '#008000', 'skirt': '#00876e', 'brim': '#00876e', 'prime tower': '#b3e3ab', 'wipe tower': '#b3e3ab' };
+const typeColor = (nm, i) => { const h = ORCA[String(nm).toLowerCase().trim()]; return h ? new THREE.Color(h) : new THREE.Color().setHSL((i * .137) % 1, .5, .6); };
+const cl = v => Math.min(1, Math.max(0, v));
+const turbo = (t, c = new THREE.Color()) => { t = .08 + .87 * cl(t);   // Google "turbo" polynomial; low end lifted so it stays visible on the dark background
+  return c.setRGB(cl(.13572138 + t * (4.6153926 + t * (-42.66032258 + t * (132.13108234 + t * (-152.94239396 + t * 59.28637943))))),
+    cl(.09140261 + t * (2.19418839 + t * (4.84296658 + t * (-14.18503333 + t * (4.27729857 + t * 2.82956604))))),
+    cl(.1066733 + t * (12.64194608 + t * (-60.58204836 + t * (110.36276771 + t * (-89.90310912 + t * 27.34824973)))))); };
+const gradCss = () => [0, .25, .5, .75, 1].map(k => '#' + turbo(k).getHexString()).join(',');
+function gradRange(mode) {   // speed: 1st–99th percentile so one fast outlier doesn't flatten the ramp; height: min–max
+  const key = mode + 'Range'; if (M[key]) return M[key];
+  const n = M.n, a = new Float32Array(n); for (let i = 0; i < n; i++) a[i] = mode === 'speed' ? M.fd[i] : M.pos[i * 6 + 1];
+  let lo = Infinity, hi = -Infinity;
+  if (mode === 'speed') { a.sort(); lo = a[Math.floor(n * .01)]; hi = a[Math.min(n - 1, Math.floor(n * .99))]; }
+  else for (let i = 0; i < n; i++) { if (a[i] < lo) lo = a[i]; if (a[i] > hi) hi = a[i]; }
+  return M[key] = [lo, hi];
+}
 let mode = 'tool';
 function recolor() {
   if (!M) return;
-  const n = M.n, c = new Float32Array(n * 6), rgb = colors.map(k => new THREE.Color(k)), t = new THREE.Color();
+  const n = M.n, c = new Float32Array(n * 6), rgb = colors.map(k => new THREE.Color(k)), t = new THREE.Color(), tcol = M.types.map((nm, i) => typeColor(nm, i));
   let lo = 0, hi = 1;
   if (mode === 'speed' || mode === 'height') {
-    lo = Infinity; hi = -Infinity;
-    for (let i = 0; i < n; i++) { const v = mode === 'speed' ? M.fd[i] : M.pos[i * 6 + 1]; if (v < lo) lo = v; if (v > hi) hi = v; }
+    [lo, hi] = gradRange(mode);
   }
   for (let i = 0; i < n; i++) {
     if (mode === 'tool') t.copy(rgb[M.tl[i] % rgb.length]);
-    else if (mode === 'type') t.setHSL((M.ty[i] * 0.137) % 1, 0.65, 0.55);
-    else { const v = mode === 'speed' ? M.fd[i] : M.pos[i * 6 + 1]; t.setHSL(0.66 * (1 - (v - lo) / (hi - lo || 1)), 0.8, 0.55); }
+    else if (mode === 'type') t.copy(tcol[M.ty[i]]);
+    else { const v = mode === 'speed' ? M.fd[i] : M.pos[i * 6 + 1]; turbo((v - lo) / (hi - lo || 1), t); }
     const j = i * 6; c[j] = c[j + 3] = t.r; c[j + 1] = c[j + 4] = t.g; c[j + 2] = c[j + 5] = t.b;
   }
   for (const g of [gA, gB]) g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-  M.col = c; redrawLayer();
+  M.col = c;
+  if (rA) { const ib = new THREE.InstancedInterleavedBuffer(c, 6, 1); for (const r of [rA, rB]) r.geometry.setAttribute('col', new THREE.InterleavedBufferAttribute(ib, 3, 0)); }
+  redrawLayer();
   $('lg').innerHTML = mode === 'tool' ? colors.slice(0, 4).map((k, i) => `<span><i style="background:${k}"></i>T${i}</span>`).join('')
-    : mode === 'type' ? (M.types.length ? M.types.map((nm, i) => `<span><i style="background:#${new THREE.Color().setHSL((i * 0.137) % 1, 0.65, 0.55).getHexString()}"></i>${esc(nm)}</span>`).join('') : '<span>No ;TYPE: comments in this file</span>')
-    : `<span><i style="background:linear-gradient(90deg,hsl(238,80%,55%),hsl(0,80%,55%));width:60px"></i>${lo.toFixed(mode === 'speed' ? 0 : 1)} – ${hi.toFixed(mode === 'speed' ? 0 : 1)} ${mode === 'speed' ? 'mm/s' : 'mm'}</span>`;
+    : mode === 'type' ? (M.types.length ? M.types.map((nm, i) => `<span><i style="background:#${typeColor(nm, i).getHexString()}"></i>${esc(nm)}</span>`).join('') : '<span>No ;TYPE: comments in this file</span>')
+    : `<span><i style="background:linear-gradient(90deg,${gradCss()});width:80px"></i>${lo.toFixed(mode === 'speed' ? 0 : 1)} – ${hi.toFixed(mode === 'speed' ? 0 : 1)} ${mode === 'speed' ? 'mm/s' : 'mm'}</span>`;
+}
+const RIB_VS = `attribute vec3 pa; attribute vec3 pb; attribute vec3 col; attribute float idx;
+uniform float uW, uFrom, uTo; uniform vec2 uRes; varying vec3 vC; varying float vS;
+void main(){
+  vec4 ca = projectionMatrix * modelViewMatrix * vec4(pa, 1.), cb = projectionMatrix * modelViewMatrix * vec4(pb, 1.);
+  if (idx < uFrom || idx >= uTo || ca.w <= 0. || cb.w <= 0.) { gl_Position = vec4(2., 2., 2., 1.); return; }
+  vec2 d = (cb.xy / cb.w - ca.xy / ca.w) * uRes * .5;                 // segment direction in pixels
+  float l = length(d); d = l < 1e-4 ? vec2(1., 0.) : d / l;
+  vec4 c = mix(ca, cb, position.x);
+  float wpx = max(uW * uRes.y * .5 * projectionMatrix[1][1] / c.w, 1.3);   // world width -> pixels, never thinner than 1.3 px
+  vec2 o = (vec2(-d.y, d.x) * position.y + d * (position.x * 2. - 1.)) * wpx / uRes;
+  c.xy += o * c.w; gl_Position = c; vC = col; vS = position.y;
+}`;
+const RIB_FS = `uniform float uA; varying vec3 vC; varying float vS; void main(){ gl_FragColor = vec4(vC * (1. - .35 * vS * vS), uA); }`;
+function ensureRib() {
+  if (rA || !M) return;
+  const ibp = new THREE.InstancedInterleavedBuffer(M.pos, 6, 1), ibc = new THREE.InstancedInterleavedBuffer(M.col, 6, 1);
+  const mk = a => {
+    const g = new THREE.InstancedBufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, 1, 0]), 3)); g.setIndex([0, 1, 2, 0, 2, 3]);
+    g.setAttribute('pa', new THREE.InterleavedBufferAttribute(ibp, 3, 0)); g.setAttribute('pb', new THREE.InterleavedBufferAttribute(ibp, 3, 3));
+    g.setAttribute('col', new THREE.InterleavedBufferAttribute(ibc, 3, 0)); g.setAttribute('idx', new THREE.InstancedBufferAttribute(M.idx, 1)); g.instanceCount = M.n;
+    const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: RIB_VS, fragmentShader: RIB_FS, transparent: a < 1, depthWrite: a === 1, side: THREE.DoubleSide,
+      uniforms: { uW: { value: .45 }, uRes: ribRes, uFrom: { value: 0 }, uTo: { value: 0 }, uA: { value: a } } }));
+    m.frustumCulled = false; scene.add(m); return m;
+  };
+  rA = mk(1); rB = mk(.13);
+}
+function ribRange(s0, n) { if (!rA) return; const a = rA.material.uniforms, b = rB.material.uniforms; a.uFrom.value = s0; a.uTo.value = n; b.uFrom.value = n; b.uTo.value = M.n; }
+function applyStyle() {
+  const r = $('rs').value === 'rib', g = $('gh').checked; if (r) ensureRib();
+  if (lA) { lA.visible = !r; lB.visible = !r && g; }
+  if (rA) { rA.visible = r; rB.visible = r && g; }
+  if (M) show(cur);
 }
 function fit() {
   if (!M || !M.n) return;
@@ -1313,23 +1393,97 @@ function fit() {
 }
 
 /* ---------- local files ---------- */
-let parseName = '';
+let parseName = '', loadedFileSize = 0;
 const mb = n => (n / 1048576).toFixed(1) + ' MB';
 function loading(title, sub, pct) {
   $('load').classList.add('on'); $('lt').textContent = title; $('lt').title = title; $('ls').textContent = sub || '';
   $('lb').style.display = pct == null ? 'none' : ''; $('lp').style.width = (pct || 0) + '%';
 }
 const doneLoading = () => $('load').classList.remove('on');
+
+/* 3MF extraction: local-only, supports appended ZIP and comment-base64 blocks.
+   ZIP signature plus central-directory 3MF identity avoids mistaking thumbnails for projects. */
+let embedded3mf=null, embeddedScanId=0;
+const downloadBlob=(data,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),30000);};
+function clearEmbedded3mf(){embedded3mf=null;const b=$('dl3mf');b.hidden=true;b.disabled=true;$('embedded-detail').hidden=true;}
+function projectName(filename){return filename.replace(/\.(?:gcode|gco|gc|g|txt)$/i,'').replace(/[\/]/g,'_')+'.3mf';}
+function zip3mfInfo(bytes){
+  if(bytes.length<44)return null;
+  // End-of-central-directory signature must lie at the real end (allow ZIP comment).
+  let end=-1;for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--)
+    if(bytes[i]===80&&bytes[i+1]===75&&bytes[i+2]===5&&bytes[i+3]===6 && i+22+(bytes[i+20]|bytes[i+21]<<8)===bytes.length){end=i;break;}
+  if(end<0)return null;
+  const u16=i=>bytes[i]|bytes[i+1]<<8;
+  const u32=i=>(bytes[i]|bytes[i+1]<<8|bytes[i+2]<<16|bytes[i+3]<<24)>>>0;
+  const dirSize=u32(end+12),dirOff=u32(end+16),entries=u16(end+10);
+  if(!entries||entries>65000||dirSize>bytes.length||dirSize>64*1024*1024)return null;
+  // With an appended ZIP, the offsets in its directory refer to its own start.
+  const start=end-dirSize-dirOff;
+  if(start<0||start+4>bytes.length||bytes[start]!==80||bytes[start+1]!==75||bytes[start+2]!==3||bytes[start+3]!==4)return null;
+  let off=start+dirOff;const dec=new TextDecoder();let foundModel=false,foundTypes=false;
+  for(let j=0;j<entries;j++){
+    if(off+46>bytes.length||u32(off)!==0x02014b50)return null;
+    const nameLen=u16(off+28),extraLen=u16(off+30),commentLen=u16(off+32);
+    if(nameLen>8192||off+46+nameLen+extraLen+commentLen>bytes.length)return null;
+    const name=dec.decode(bytes.subarray(off+46,off+46+nameLen)).replace(/\\/g,'/');
+    if(/^\[Content_Types\]\.xml$/i.test(name))foundTypes=true;
+    if(/(?:^|\/)3D\/.*\.model$/i.test(name)||/\.model$/i.test(name))foundModel=true;
+    off+=46+nameLen+extraLen+commentLen;
+  }
+  return foundModel&&foundTypes?{start,bytes:bytes.subarray(start),label:'embedded ZIP project'}:null;
+}
+function decodeComment3mf(text){
+  // Prefer explicit delimiters so ordinary G-code thumbnail base64 is never considered.
+  // Tolerates variants such as ; 3MF_BEGIN / ; BEGIN_EMBEDDED_3MF / ; project_3mf begin.
+  const lines=text.split(/\r?\n/);let collecting=false,parts=[],length=0;
+  const boundary=s=>/\b(?:3mf|project[ _-]*archive|embedded[ _-]*project)\b/i.test(s)||/(?:3mf|project)[_ -]/i.test(s);
+  for(const line of lines){
+    if(!/^\s*;/.test(line)) {if(collecting){collecting=false;parts=[];length=0;}continue;}
+    const v=line.replace(/^\s*;\s*/, '').trim();
+    if(!collecting){
+      if(boundary(v)&&/\b(?:begin|start)\b|(?:^|[_ -])(?:begin|start)(?:[_ -]|$)/i.test(v)&&!/thumbnail/i.test(v)){
+        collecting=true;parts=[];length=0;
+      }
+    }else if(boundary(v)&&/\b(?:end|stop)\b|(?:^|[_ -])(?:end|stop)(?:[_ -]|$)/i.test(v)){
+      if(length>40){try{const joined=parts.join('');if(joined.length>128*1024*1024)return null;
+        const bin=atob(joined),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));const z=zip3mfInfo(bytes);if(z)return {bytes:z.bytes,label:'base64 embedded project'};
+      }catch(e){console.warn('[U1 viewer] Invalid embedded 3MF block:',e.message);}}
+      collecting=false;parts=[];length=0;
+    }else if(/^[A-Za-z0-9+/]{8,}={0,2}$/.test(v)){parts.push(v);length+=v.length;if(length>128*1024*1024)return null;}
+    else if(v&&!/^(?:data|length|size|encoding|base64)\s*[:=]/i.test(v)){collecting=false;parts=[];length=0;}
+  }
+  return null;
+}
+function findEmbedded3mf(text,originalBytes){
+  // A trailing binary ZIP must be checked before comment scanning.
+  if(originalBytes){const z=zip3mfInfo(originalBytes);if(z)return z;}
+  // Limit line scanning to the footer plus header where slicers typically put attachments.
+  const candidate=text.length>16e6?text.slice(0,2e6)+'\n'+text.slice(-14e6):text;
+  return decodeComment3mf(candidate);
+}
+async function setEmbeddedFromText(text,raw=null){
+  const id=++embeddedScanId;clearEmbedded3mf();
+  await new Promise(r=>setTimeout(r,0));
+  const result=findEmbedded3mf(text,raw);
+  if(id!==embeddedScanId)return;
+  if(result){embedded3mf=new Blob([result.bytes],{type:'model/3mf'});
+    const b=$('dl3mf');b.hidden=false;b.disabled=false;
+    $('embedded-detail').textContent='3MF project found · '+mb(result.bytes.length)+' · '+result.label;
+    $('embedded-detail').hidden=false;
+    console.info('[U1 viewer] Embedded 3MF detected:',result.label,result.bytes.length,'bytes');
+  }
+}
+$('dl3mf').onclick=()=>{if(embedded3mf)downloadBlob(embedded3mf,projectName(parseName||dlSrc?.name||'project.gcode'));};
 let dlSrc = null;
-function setDl(data, name) { dlSrc = { data, name }; $('dl').disabled = false; }
+function setDl(data, name) { dlSrc = { data, name }; $('dl').disabled = false; $('dl').hidden = false; }
 $('dl').onclick = () => {
   if (!dlSrc) return;
   const a = document.createElement('a'); a.href = URL.createObjectURL(dlSrc.data); a.download = dlSrc.name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 };
 function openFile(f) {
-  setDl(f, f.name); $('fol').checked = false; loading('Reading ' + f.name, mb(f.size), null);
-  f.text().then(t => loadText(t, f.name), err => { doneLoading(); status('Could not read file: ' + err.message, 'bad'); });
+  setDl(f, f.name); clearEmbedded3mf(); $('fol').checked = false; loading('Reading ' + f.name, mb(f.size), null);
+  f.arrayBuffer().then(async buf => { const bytes=new Uint8Array(buf), text=new TextDecoder().decode(bytes); await loadText(text, f.name); await setEmbeddedFromText(text,bytes); }, err => { doneLoading(); status('Could not read file: ' + err.message, 'bad'); });
 }
 function status(t, cls) { const s = $('st'); s.textContent = t; s.className = cls || ''; s.title = t; }
 const toSecs = s => { let t = 0; for (const x of String(s).matchAll(/(\d+(?:\.\d+)?)\s*([dhms])/g)) t += +x[1] * { d: 86400, h: 3600, m: 60, s: 1 }[x[2]]; return t; };
@@ -1377,6 +1531,7 @@ async function loadText0(text, name) {
   const b = new THREE.Box3().setFromBufferAttribute(gA.attributes.position);
   bounds = `model X ${(b.min.x + C).toFixed(0)}..${(b.max.x + C).toFixed(0)}  Y ${(C - b.max.z).toFixed(0)}..${(C - b.min.z).toFixed(0)}  Z ${b.min.y.toFixed(1)}..${b.max.y.toFixed(1)}`;
   M.meta = readMeta(text, M);
+  loadedFileSize = new TextEncoder().encode(text).length;
   ui();
 }
 $('f').onchange = e => { const f = e.target.files[0]; if (f) openFile(f); };
@@ -1393,14 +1548,31 @@ $('fitb').onclick = fit;
 $('ui').onclick = () => document.body.classList.toggle('hide');
 $('more').open = !matchMedia('(max-width:720px)').matches;
 $('cm').onchange = e => { mode = e.target.value; recolor(); saveView(); };
-const saveView = () => localStorage.setItem('u1view', JSON.stringify({ gh: $('gh').checked, one: $('one').checked, cm: $('cm').value, fol: $('fol').checked }));
+$('nc').onchange = () => { $('solid-wrap').hidden = $('nc').value !== 'solid'; updateNozzleColor(); saveView(); };
+$('solid-color').oninput = () => { updateNozzleColor(); saveView(); };
+const saveView = () => { localStorage.setItem('u1view', JSON.stringify({ gh: $('gh').checked, one: $('one').checked, cm: $('cm').value, nc: $('nc').value, solid: $('solid-color').value, fol: $('fol').checked, orb: $('orb').checked, rs: $('rs').value })); syncURL(); };
 try {
   const v = JSON.parse(localStorage.getItem('u1view'));
-  if (v) { $('gh').checked = v.gh !== false; $('one').checked = !!v.one; $('cm').value = v.cm || 'tool'; mode = $('cm').value; $('fol').checked = v.fol !== false; }
+  if (v) { $('gh').checked = v.gh !== false; $('one').checked = !!v.one; $('cm').value = v.cm || 'tool'; $('nc').value = v.nc || 'filament'; $('solid-color').value = v.solid || '#ffffff'; mode = $('cm').value; $('fol').checked = v.fol !== false; $('orb').checked = !!v.orb; $('rs').value = v.rs === 'rib' ? 'rib' : 'line'; }
 } catch (e) {}
+// All configurable controls are mirrored in the URL; URL parameters override saved preferences.
+const urlParam = new URLSearchParams(location.search);
+function syncURL() {
+  const u = new URL(location.href), v = {cm:$('cm').value,nc:$('nc').value,solid:$('solid-color').value,gh:+$('gh').checked,one:+$('one').checked,fol:+$('fol').checked,orb:+$('orb').checked,rs:$('rs').value};
+  for(const [k,x] of Object.entries(v))u.searchParams.set(k,String(x));
+  if($('host').value.trim())u.searchParams.set('host',$('host').value.trim());else u.searchParams.delete('host');
+  for(const [k,x] of Object.entries(hudOn || {}))u.searchParams.set('hud_'+k,+!!x);
+  history.replaceState(null,'',u); console.info('[U1 viewer] configuration',Object.fromEntries(u.searchParams));
+}
+for (const [id,key] of [['cm','cm'],['nc','nc'],['solid-color','solid'],['rs','rs']]) if(urlParam.has(key)) { const el=$(id); if([...el.options||[]].some(o=>o.value===urlParam.get(key)) || id==='solid-color' && /^#[0-9a-f]{6}$/i.test(urlParam.get(key)))el.value=urlParam.get(key); }
+for(const id of ['gh','one','fol','orb'])if(urlParam.has(id))$(id).checked=/^(1|true|yes)$/i.test(urlParam.get(id));
+mode=$('cm').value; $('solid-wrap').hidden=$('nc').value!=='solid';
+ctl.autoRotate=$('orb').checked; ctl.autoRotateSpeed=.8;   // ~75 s per revolution
+$('orb').onchange=()=>{ctl.autoRotate=$('orb').checked;saveView();};
+$('rs').onchange=()=>{applyStyle();saveView();};
 $('one').onchange = () => { show(cur); saveView(); };
 $('fol').onchange = saveView;
-$('gh').onchange = () => { if (lB) lB.visible = $('gh').checked; redrawLayer(); saveView(); };
+$('gh').onchange = () => { applyStyle(); redrawLayer(); saveView(); };
 addEventListener('keydown', e => {
   const t = e.target.tagName;
   if (t === 'SELECT' || (t === 'INPUT' && e.target.type !== 'checkbox') || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1411,6 +1583,9 @@ addEventListener('keydown', e => {
     $('sl').value = nl; show(layerEnd(nl));
   } else if (e.key === 'f' || e.key === 'F') fit();
   else if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('hide');
+  else if (e.key === 'o' || e.key === 'O') { $('orb').checked = !$('orb').checked; $('orb').onchange(); }
+  else if (e.key === 'c' || e.key === 'C') camFullscreen();
+  else if (e.key === 'Escape' && camFs) camFullscreen(false);
 });
 $('sl').oninput = e => { $('fol').checked = false; show(layerEnd(+e.target.value)); };
 
@@ -1441,14 +1616,15 @@ function connect() {
     }
     else if (m.id === 6) camMsg = m.error ? 'Camera wake-up failed: ' + m.error.message : (m.result && m.result.state === 'failed' ? 'Camera wake-up failed: ' + m.result.message : '');
     else if (m.method === 'notify_status_update') merge(m.params[0]);
-    else if (m.method === 'notify_proc_stat_update') sys = m.params[0] || {};
+    else if (m.method === 'notify_proc_stat_update') { sys = m.params[0] || {}; updateLeftPane(); recordSystem(); }
   };
-  ws.onclose = () => { live = false; if (want) { status('Connection lost, retrying…', 'bad'); retry = setTimeout(connect, 3000); } };
+  ws.onclose = () => { live = false; updateLeftPane(); if (want) { status('Connection lost, retrying…', 'bad'); retry = setTimeout(connect, 3000); } };
   ws.onerror = () => ws.close();
 }
-function disconnect() { want = false; clearTimeout(retry); if (ws) ws.close(); live = false; $('cb').textContent = 'Connect'; status('Disconnected'); }
+function disconnect() { want = false; clearTimeout(retry); if (ws) ws.close(); live = false; $('cb').textContent = 'Connect'; status('Disconnected'); updateLeftPane(); }
 $('cb').onclick = () => want ? disconnect() : connect();
-$('host').value = localStorage.getItem('u1host') || '';
+$('host').value = new URLSearchParams(location.search).get('host') || localStorage.getItem('u1host') || '';
+$('host').addEventListener('change',syncURL);
 
 function merge(s) { for (const k in s) st[k] = Object.assign(st[k] || {}, s[k]); live = true; sync(); }
 async function sync() {
@@ -1473,7 +1649,8 @@ async function sync() {
       }
       const buf = new Uint8Array(got); let at = 0; for (const c of parts) { buf.set(c, at); at += c.length; }
       setDl(new Blob([buf], { type: 'text/plain' }), f.split('/').pop());
-      await loadText(new TextDecoder().decode(buf), f);
+      clearEmbedded3mf(); const text=new TextDecoder().decode(buf);
+      await loadText(text, f); await setEmbeddedFromText(text,buf);
     } catch (err) {
       doneLoading(); loaded = ''; status('Could not fetch file (' + err.message + '). Allow CORS in moonraker.conf or open the file manually.', 'bad');
       return;
@@ -1488,41 +1665,101 @@ async function sync() {
   redrawLayer();
   const ti = st.toolhead && st.toolhead.extruder;
   const ci = ti && /(\d+)$/.exec(ti); const tc = ci ? +ci[1] : 0;
-  marker.material.color.set(colors[tc % colors.length] || '#fff');
+  updateNozzleColor(tc);
   ui();
 }
+// Use the active extrusion segment for preview coloring, and the printer's
+// physical toolhead for live tool coloring. Other modes follow the segment.
+function nozzleColorFor(mode, segmentIndex, physicalTool) {
+  const valid = M && M.n && segmentIndex >= 0 && segmentIndex < M.n;
+  const logicalTool = valid ? M.tl[segmentIndex] : physicalTool;
+  if (mode === 'solid') return new THREE.Color($('solid-color').value);
+  if (mode === 'tool') return new THREE.Color(PAL[(physicalTool % PAL.length + PAL.length) % PAL.length]);
+  if (mode === 'filament') {
+    const slot = (logicalTool % colors.length + colors.length) % colors.length;
+    return new THREE.Color(colors[slot] || '#ffffff');
+  }
+  if (!valid) return new THREE.Color('#ffffff');
+  if (mode === 'type') return typeColor(M.types[M.ty[segmentIndex]], M.ty[segmentIndex] || 0);
+  if (mode === 'speed' || mode === 'height') {
+    const v = mode === 'speed' ? M.fd[segmentIndex] : M.pos[segmentIndex * 6 + 1], [lo, hi] = gradRange(mode);
+    return turbo((v - lo) / (hi - lo || 1));
+  }
+  return new THREE.Color('#ffffff');
+}
+function updateNozzleColor(toolNumber) {
+  if (toolNumber == null) {
+    const active = (st.toolhead && st.toolhead.extruder) || '';
+    toolNumber = +(active.match(/(\d+)$/) || [0, 0])[1];
+  }
+  const n = M && M.n && cur ? Math.max(0, Math.min(M.n - 1, cur - 1)) : -1;
+  // Offline preview: derive both tool/filament from G-code, not stale printer state.
+  const physicalTool = !live && n >= 0 ? M.tl[n] : toolNumber;
+  marker.material.color.copy(nozzleColorFor($('nc').value, n, physicalTool));
+}
+
+function updateLeftPane() {
+  document.body.classList.toggle('live', !!live); $('info').style.display = live ? '' : 'none';
+  const hasFile=!!(M&&M.n), hasJob=!!(live && st.print_stats && st.print_stats.filename && !['standby','complete','cancelled','error'].includes(st.print_stats.state));
+  $('file-summary').classList.toggle('hidden',!hasFile);
+  $('job-summary').classList.toggle('hidden',!hasJob);
+  $('system-summary').classList.toggle('hidden',!live);
+  if(hasFile){
+    $('file-name').textContent=parseName;
+    $('file-stats').textContent=mb(loadedFileSize)+' · '+M.n.toLocaleString()+' segments';
+    const thumb=M.meta&&M.meta.thumb, old=$('file-thumb');
+    if(thumb && old.dataset.thumb!==thumb){const im=document.createElement('img');im.id='file-thumb';im.alt='Slicer thumbnail';im.src=thumb;im.dataset.thumb=thumb;old.replaceWith(im);}
+    else if(!thumb && old.tagName==='IMG'){const div=document.createElement('div');div.id='file-thumb';div.className='thumb-placeholder';div.textContent='◇';old.replaceWith(div);}
+    $('dl').hidden=!dlSrc;
+  }
+  if(hasJob){const ps=st.print_stats,pr=st.virtual_sdcard&&st.virtual_sdcard.progress,elapsed=ps.print_duration||0;
+    $('job-state').textContent=ps.state||''; $('job-file').textContent=(ps.filename||'').split('/').pop(); $('job-pct').textContent=pr!=null?(pr*100).toFixed(0)+'%':'—';
+    $('bar').firstChild.style.width=(pr!=null?pr*100:0)+'%';$('job-elapsed').textContent=dur(elapsed);
+    $('job-remaining').textContent=pr>0.02&&ps.state==='printing'?dur(elapsed*(1-pr)/pr):'—';
+    const inf=ps.info||{};$('job-layer').textContent=inf.current_layer!=null?inf.current_layer+(inf.total_layer?' / '+inf.total_layer:''):hasFile&&cur?layerOf(Math.max(0,cur-1))+1+' / '+M.ls.length:'—';
+  }
+  if(live){const vals=systemValues();$('left-cpu').textContent=vals.cpu; $('left-cputemp').textContent=vals.temp; $('left-memory').textContent=vals.mem;}
+}
+function systemValues(){const cu=sys.system_cpu_usage&&sys.system_cpu_usage.cpu, mm=sys.system_memory, temp=sys.cpu_temp;
+ return {cpu:Number.isFinite(cu)?cu.toFixed(0)+'%':'—',temp:Number.isFinite(temp)?temp.toFixed(0)+'°C':'—',mem:mm&&mm.total?Math.round((mm.total-mm.available)/mm.total*100)+'%':'—', raw:[Number.isFinite(cu)?cu:null,Number.isFinite(temp)?temp:null,mm&&mm.total?(mm.total-mm.available)/mm.total*100:null]};}
 function ui() {
   const t = (o) => o && o.temperature != null ? `${o.temperature.toFixed(0)}°${o.target ? ' → ' + o.target.toFixed(0) + '°' : ''}` : '–';
   const pr = st.virtual_sdcard && st.virtual_sdcard.progress;
-  const rows = [['State', (st.print_stats && st.print_stats.state) || (M ? 'file loaded' : '–')],
-    ['Progress', pr != null ? (pr * 100).toFixed(1) + '%' : '–'],
-    ['Tool', (st.toolhead && st.toolhead.extruder) || '–'],
+  const rows = [['Tool', (st.toolhead && st.toolhead.extruder) || '–'],
     ['Nozzle', t(st.extruder)], ['Bed', t(st.heater_bed)]];
   $('info').innerHTML = rows.map(r => `<span>${r[0]}</span><span>${r[1]}</span>`).join('');
   const f = (a) => a ? a.slice(0, 3).map(v => v.toFixed(1)).join(', ') : '–';
   $('dbg').textContent = `${bounds || 'no model loaded'}\ngcode pos: ${f(st.gcode_move && st.gcode_move.gcode_position)}\nmachine pos: ${f(st.toolhead && st.toolhead.position)}\nfile offset: ${st.virtual_sdcard && st.virtual_sdcard.file_position != null ? st.virtual_sdcard.file_position : '–'}`;
   const pst = st.print_stats && st.print_stats.state, pct = pr != null ? (pr * 100).toFixed(0) + '%' : '';
   document.title = pst === 'printing' ? `${pct} · U1 viewer` : pst === 'paused' ? `⏸ ${pct} · U1 viewer` : pst === 'complete' ? '✔ Complete · U1 viewer' : pst === 'error' ? '⚠ Error · U1 viewer' : 'U1 live G-code viewer';
-  $('bar').firstChild.style.width = (pr != null ? pr * 100 : M ? cur / M.n * 100 : 0) + '%';
+  updateLeftPane(); updateNozzleColor();
 }
 ui();
 
 /* ---------- HUD ---------- */
 const HUD = { cam: 'Camera', temps: 'Temperatures', layer: '2D layer view', job: 'Job', meta: 'File info', motion: 'Motion', fans: 'Fans', sys: 'System' };
-let metaDone, camSnap = '', camIdx = 0, camBusy = false, camErr = false, camMsg = '', hudOn = matchMedia('(max-width:720px)').matches ? {} : { temps: true, job: true, meta: true }, heaters = [], fans = [], hist = {}, vel = [], sys = {};
+let metaDone, camSnap = '', camIdx = 0, camBusy = false, camErr = false, camMsg = '', hudOn = matchMedia('(max-width:720px)').matches ? {} : { temps: true, meta: true }, heaters = [], fans = [], hist = {}, vel = [], sys = {};
 try { hudOn = Object.assign(hudOn, JSON.parse(localStorage.getItem('u1hud'))); } catch (e) {}
 for (const k in HUD) {
   const c = document.createElement('section'); c.className = 'card'; c.id = 'c-' + k;
-  c.innerHTML = `<h2>${HUD[k]}</h2>` + (k === 'temps' ? '<canvas class="g" id="tg" width="560" height="200"></canvas>' : '')
+  c.innerHTML = `<h2>${HUD[k]}</h2>` + (k === 'cam' ? '<button id="camfs-b" title="Fullscreen camera (C)" aria-label="Fullscreen camera">⛶</button>' : '') + (k === 'temps' ? '<canvas class="g" id="tg" width="560" height="200"></canvas>' : '')
+    + (k === 'sys' ? '<div class="sys-graph"><span>CPU usage</span><canvas id="sg-cpu" width="560" height="100"></canvas></div><div class="sys-graph"><span>CPU temperature</span><canvas id="sg-temp" width="560" height="100"></canvas></div><div class="sys-graph"><span>Memory usage</span><canvas id="sg-mem" width="560" height="100"></canvas></div>' : '')
     + (k === 'motion' ? '<canvas class="g" id="vg" width="560" height="70"></canvas>' : '')
     + (k === 'layer' ? '<canvas class="g" id="lv" width="560" height="560"></canvas>' : '')
     + (k === 'cam' ? '<img id="cam" alt="Printer camera" style="width:100%;display:none;border-radius:4px">' : '') + '<div class="body"></div>';
   $('hud').appendChild(c);
   const l = document.createElement('label');
   l.innerHTML = `<input type="checkbox"${hudOn[k] ? ' checked' : ''}> ${HUD[k]}`;
-  l.firstChild.onchange = e => { hudOn[k] = e.target.checked; localStorage.setItem('u1hud', JSON.stringify(hudOn)); drawHud(); };
+  if(urlParam.has('hud_'+k))hudOn[k]=/^(1|true|yes)$/i.test(urlParam.get('hud_'+k));
+  l.firstChild.checked=!!hudOn[k];
+  l.firstChild.onchange = e => { hudOn[k] = e.target.checked; localStorage.setItem('u1hud', JSON.stringify(hudOn)); syncURL(); drawHud(); };
   $('hudopts').appendChild(l);
 }
+const systemHistory=[];
+function recordSystem(){if(!live)return;systemHistory.push({t:Date.now(),v:systemValues().raw});while(systemHistory.length&&systemHistory[0].t<Date.now()-1800000)systemHistory.shift();if(hudOn.sys)drawSystemGraphs();}
+function drawSystemGraphs(){const now=Date.now(),series=[['cpu',0,100,'#5cc8ff'],['temp',1,100,'#ffc247'],['mem',2,100,'#7bd88f']];
+ for(const [id,index,max,color] of series){const c=$('sg-'+id),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);g.strokeStyle='#293443';g.lineWidth=1;for(let j=1;j<4;j++){g.beginPath();g.moveTo(0,h*j/4);g.lineTo(w,h*j/4);g.stroke();}
+ g.strokeStyle=color;g.lineWidth=3;g.beginPath();let started=false;for(const item of systemHistory){const v=item.v[index];if(v==null){started=false;continue;}const x=w-(now-item.t)/1800000*w,y=h-5-Math.max(0,Math.min(1,v/max))*(h-10);if(started)g.lineTo(x,y);else g.moveTo(x,y);started=true;}g.stroke();}}
 const rpc = (id, method, params) => ws.send(JSON.stringify({ jsonrpc: '2.0', id, method, params }));
 function subscribe(all) {
   heaters = all.filter(n => /^(extruder\d*|heater_bed)$/.test(n));
@@ -1618,18 +1855,15 @@ function drawHud() {
   }
   if (hudOn.fans) body('fans').innerHTML = fans.map(n => { const s = Math.round(((st[n] && st[n].speed) || 0) * 100);
     return `<div class="fan"><span title="${esc(n)}">${esc(n === 'fan' ? 'Part' : n.replace(/^\w+ /, ''))}</span><div class="tr"><i style="width:${s}%"></i></div><span>${s}%</span></div>`; }).join('') || '<span style="color:var(--mut)">No fans reported</span>';
-  redrawLayer();
+  redrawLayer(); updateLeftPane();
   if (hudOn.meta && (M && M.meta || null) !== metaDone) renderMeta();
   const im = $('cam');
   if (hudOn.cam && im.dataset.on !== '1') { im.dataset.on = '1'; camErr = false; camMsg = ''; camWake(); camTick(); }
   if (!hudOn.cam && im.dataset.on === '1') { im.removeAttribute('src'); im.dataset.on = ''; camBusy = false; }
   im.style.display = hudOn.cam && !camErr ? 'block' : 'none';
-  body('cam').textContent = !hudOn.cam ? '' : camErr ? (camMsg || 'No camera image yet. Trying the printer camera snapshot file and the webcam URL in turn; the camera can take a few seconds to wake.') : camMsg;
-  if (hudOn.sys) {
-    const cu = sys.system_cpu_usage && sys.system_cpu_usage.cpu, mm = sys.system_memory;
-    body('sys').innerHTML = kv([['CPU temp', sys.cpu_temp != null ? sys.cpu_temp.toFixed(0) + '°C' : '–'], ['CPU', cu != null ? cu.toFixed(0) + '%' : '–'],
-      ['Memory', mm && mm.total ? Math.round((mm.total - mm.available) / mm.total * 100) + '%' : '–']]);
-  }
+  const cmsg = !hudOn.cam ? '' : camErr ? (camMsg || 'No camera image yet. Trying the printer camera snapshot file and the webcam URL in turn; the camera can take a few seconds to wake.') : camMsg;
+  body('cam').textContent = cmsg; $('camfs-msg').textContent = !(ws && ws.readyState === 1) ? 'Connect to the printer to view its camera.' : cmsg;
+  if (hudOn.sys) { const v=systemValues();body('sys').innerHTML=kv([['CPU temp',v.temp],['CPU',v.cpu],['Memory',v.mem]]);drawSystemGraphs(); }
 }
 
 /* ---------- file info card ---------- */
@@ -1694,7 +1928,27 @@ $('cam').onload = () => { camBusy = false; if (camErr) { camErr = false; drawHud
 $('cam').onerror = () => { camBusy = false; camIdx++; if (!camErr) { camErr = true; drawHud(); } };
 setInterval(camTick, 1000);
 setInterval(() => { if (hudOn.cam) camWake(); }, 5000);
-drawHud();
+
+/* ---------- fullscreen printer camera ---------- */
+// The live <img id="cam"> is moved into a full-window overlay (and back), so the existing refresh loop keeps working.
+let camFs = false, camFsPrev = false;
+function camFullscreen(on = !camFs) {
+  if (on === camFs) return;
+  const fs = $('camfs'), im = $('cam');
+  if (on) {
+    camFsPrev = !!hudOn.cam; hudOn.cam = true;      // stream runs even if the Camera card is off
+    fs.hidden = false; fs.prepend(im);
+    if (fs.requestFullscreen) fs.requestFullscreen().catch(() => {});   // real fullscreen where supported (not iOS)
+  } else {
+    fs.hidden = true; $('c-cam').insertBefore(im, body('cam'));
+    hudOn.cam = camFsPrev;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+  camFs = on; drawHud(); syncURL();
+}
+$('camfs-b').onclick = $('camfs-x').onclick = $('cam').onclick = () => camFullscreen();
+document.addEventListener('fullscreenchange', () => { if (camFs && !document.fullscreenElement) camFullscreen(false); });
+drawHud(); syncURL();
 </script>
 </body>
 </html>
